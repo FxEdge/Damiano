@@ -5,75 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modulo Raccolta Dati</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h2 {
-            text-align: center;
-            color: #333;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .form-group textarea {
-            resize: vertical;
-        }
-        .form-group input[type="submit"] {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            padding: 10px 20px;
-            font-size: 16px;
-        }
-        .form-group input[type="submit"]:hover {
-            background-color: #45a049;
-        }
+        /* CSS per il modulo */
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        h2 { text-align: center; color: #333; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .form-group input[type="submit"], .form-group input[type="button"] { background-color: #4CAF50; color: white; border: none; cursor: pointer; padding: 10px 20px; font-size: 16px; }
+        .form-group input[type="submit"]:hover, .form-group input[type="button"]:hover { background-color: #45a049; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Modulo di Raccolta Dati</h2>
-    <form action="invia_email.php" method="POST">
+    <h2>Modulo Raccolta Dati</h2>
+    <form action="processa_dati.py" method="POST">
+        <!-- Campi di ricerca per nome, cognome, telefono, email -->
         <div class="form-group">
-            <label for="nome">Nome e Cognome:</label>
-            <input type="text" id="nome" name="nome" required>
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" name="nome" placeholder="Inserisci il nome" required>
+        </div>
+        <div class="form-group">
+            <label for="cognome">Cognome:</label>
+            <input type="text" id="cognome" name="cognome" placeholder="Inserisci il cognome" required>
+        </div>
+        <div class="form-group">
+            <label for="telefono">Telefono:</label>
+            <input type="tel" id="telefono" name="telefono" placeholder="Inserisci il numero di telefono" required>
         </div>
         <div class="form-group">
             <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required>
+            <input type="email" id="email" name="email" placeholder="Inserisci l'email" required>
         </div>
-        <div class="form-group">
-            <label for="telefono">Numero di Telefono:</label>
-            <input type="tel" id="telefono" name="telefono">
-        </div>
-        <div class="form-group">
-            <label for="defunto">Nome e Cognome della Persona Defunta:</label>
-            <input type="text" id="defunto" name="defunto" required>
-        </div>
+
+        <!-- Dati per la ricorrenza -->
         <div class="form-group">
             <label for="data">Data della Ricorrenza:</label>
             <input type="date" id="data" name="data" required>
@@ -90,11 +56,14 @@
             <label for="corpo">Corpo del Messaggio:</label>
             <textarea id="corpo" name="corpo" rows="5" required></textarea>
         </div>
+
+        <!-- Pulsante per confermare -->
         <div class="form-group">
-            <input type="submit" value="Invia">
+            <input type="submit" value="Conferma e Salva">
         </div>
     </form>
 </div>
 
 </body>
 </html>
+
