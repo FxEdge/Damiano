@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Damiano – Login</title>
+  <link rel="icon" href="assets/logo.svg">
+  <style>
+    :root{--bg:#f3f4f6;--surface:#ffffff;--text:#111827;--muted:#6b7280;--primary:#2563eb;--border:#e5e7eb;--shadow:0 10px 30px rgba(0,0,0,.06)}
+    *{box-sizing:border-box}html,body{margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial}
+    .container{width:min(1100px,92%);margin-inline:auto;padding:20px}
+    .header{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700}
+    .logo{width:36px;height:36px}
+    .center{min-height:70vh;display:grid;place-items:center}
+    .card{width:min(420px,92%);background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:18px}
+    h1{margin:0 0 6px;font-size:clamp(22px,3vw,28px)}
+    .subtitle{color:var(--muted);margin:0 0 14px}
+    .grid{display:grid;gap:10px}
+    label{font-size:13px;color:var(--muted)}
+    input{width:100%;background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 12px;outline:none}
+    input:focus{border-color:#c7d2fe;box-shadow:0 0 0 4px #e0e7ff}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{border:1px solid var(--border);background:var(--surface);padding:10px 14px;border-radius:12px;cursor:pointer}
+    .btn-primary{background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;color:#fff}
+    .btn-ghost{background:transparent}
+    .status{min-height:20px;color:#065f46;margin-top:8px}
+    .footer{display:flex;align-items:center;justify-content:space-between;padding:22px 0 40px;color:var(--muted)}
+    .hint{font-size:12px;color:var(--muted);margin-top:6px}
+    .warning{font-size:12px;color:#b45309;background:#fffbeb;border:1px solid #fcd34d;padding:8px;border-radius:10px;margin-bottom:10px;display:none}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="brand">
+        <img src="assets/logo.svg" alt="Damiano Logo" class="logo"/>
+        <span>Damiano</span>
+      </div>
+    </header>
+
+    <main class="center">
+      <section class="card" role="form" aria-labelledby="titolo-login">
+        <h1 id="titolo-login">Accedi</h1>
+        <p class="subtitle">Entra per usare il gestionale clienti.</p>
+
+        <div id="httpsWarn" class="warning">
+          Stai aprendo la pagina in <strong>HTTPS</strong>. Se l'API è <code>http://localhost:8000</code>, il browser la blocca.
+          Premi <strong>Configura API</strong> e inserisci un URL <strong>HTTPS</strong> (es. backend su Render/Railway) oppure
+          testa aprendo il sito in locale (file:/// o http://).
+        </div>
+
+        <form id="loginForm" class="grid" novalidate>
+          <div>
+            <label for="email">Email</label>
+            <input id="email" type="email" placeholder="es. nome@dominio.it" required autocomplete="username"/>
+          </div>
+          <div>
+            <label for="password">Password</label>
+            <input id="password" type="password" placeholder="Inserisci la password" required autocomplete="current-password"/>
+          </div>
+          <div class="actions">
+            <button class="btn btn-primary" type="submit">Entra</button>
+            <button class="btn btn-ghost" type="button" id="btnApi">Configura API</button>
+          </div>
+          <p id="status" class="status" aria-live="polite"></p>
+          <p class="hint">API di default: <code>http://localhost:8000</code> • Password iniziale: <code>demo</code>.</p>
+        </form>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>© <span id="year"></span> Damiano</span>
+    </footer>
+  </div>
+
+  <script>
+    const DEFAULT_API = 'http://localhost:8000';
+    const $ = s => document.querySelector(s);
+    $('#year').textContent = new Date().getFullYear();
+    function getApiBase(){ return localStorage.getItem('damiano_api') || DEFAULT_API; }
+    if (location.protocol === 'https:' && getApiBase().startsWith('http://')) {
+      document.getElementById('httpsWarn').style.display = 'block';
+    }
+    $('#btnApi').addEventListener('click', () => {
+      const cur = getApiBase();
+      const next = prompt('Inserisci URL backend API', cur);
+      if(next && next.trim()){
+        localStorage.setItem('damiano_api', next.trim());
+        alert('API aggiornata: ' + next.trim());
+        if (location.protocol === 'https:' && next.startsWith('http://')) {
+          document.getElementById('httpsWarn').style.display = 'block';
+        } else {
+          document.getElementById('httpsWarn').style.display = 'none';
+        }
+      }
+    });
+    $('#loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = $('#email').value.trim();
+      const password = $('#password').value.trim();
+      const status = $('#status');
+      status.textContent = 'Accesso in corso...';
+      try{
+        const res = await fetch(getApiBase() + '/auth/login', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ email, password })
+        });
+        if(!res.ok){
+          const err = await res.json().catch(()=>({detail:'Credenziali non valide'}));
+          throw new Error(err.detail || 'Credenziali non valide');
+        }
+        const data = await res.json();
+        localStorage.setItem('damiano_token', data.token);
+        status.textContent = 'Accesso riuscito. Reindirizzamento...';
+        setTimeout(()=> location.href = 'home.html', 400);
+      }catch(err){ status.textContent = err.message || 'Login fallito.'; }
+    });
+  </script>
+</body>
+</html>
