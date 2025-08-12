@@ -76,7 +76,7 @@
   </div>
 
   <script>
-    const DEFAULT_API = 'http://localhost:8000';
+    const DEFAULT_API = 'https://damiano-backend-ancz.onrender.com';
     const $ = s => document.querySelector(s);
     $('#year').textContent = new Date().getFullYear();
     function getApiBase(){ return localStorage.getItem('damiano_api') || DEFAULT_API; }
@@ -120,3 +120,4 @@
   </script>
 </body>
 </html>
+
