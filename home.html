@@ -34,28 +34,24 @@
   </div>
 
   <script>
+    // Controllo accesso: se non c'è token, torna al login
+    const token = localStorage.getItem('damiano_token');
+    if (!token) {
+      location.replace('index.html');
+    }
+
     // Mostra la data di oggi
     document.getElementById('today').textContent = new Date().toLocaleDateString('it-IT', {
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     });
 
-    // Logout: rimuove token e utente, poi torna al login
-    document.addEventListener('DOMContentLoaded', () => {
-      const btn = document.getElementById('btnLogout');
-      if (btn) {
-        btn.type = 'button';
-        btn.addEventListener('click', () => {
-          localStorage.removeItem('damiano_token');
-          localStorage.removeItem('damiano_user');
-          location.replace('index.html');
-        });
-      }
+    // Logout
+    document.getElementById('btnLogout').addEventListener('click', () => {
+      localStorage.removeItem('damiano_token');
+      localStorage.removeItem('damiano_user');
+      location.replace('index.html');
     });
   </script>
 </body>
 </html>
-
-
-
-
 
