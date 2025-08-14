@@ -119,11 +119,12 @@
         const data = await res.json();
         localStorage.setItem('damiano_token', data.token);
         status.textContent = 'Accesso riuscito. Reindirizzamento...';
-        setTimeout(()=> location.href = 'home.html', 400);
+        location.assign('home.html');
       }catch(err){ status.textContent = err.message || 'Login fallito.'; }
     });
   </script>
 </body>
 </html>
+
 
 
