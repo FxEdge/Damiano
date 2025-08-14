@@ -70,7 +70,12 @@
             <button class="btn btn-ghost" type="button" id="btnApi">Configura API</button>
           </div>
           <p id="status" class="status" aria-live="polite"></p>
-          <p class="hint">API di default: <code>http://localhost:8000</code> • Password iniziale: <code>demo</code>.</p>
+        <p class="hint">API in uso: <code id="apiInUso"></code> • Password iniziale: <code>demo</code>.</p>
+<script>
+  document.getElementById('apiInUso').textContent =
+    (localStorage.getItem('damiano_api') || 'https://damiano-backend-ancz.onrender.com');
+</script>
+
         </form>
       </section>
     </main>
@@ -125,6 +130,7 @@
   </script>
 </body>
 </html>
+
 
 
 
