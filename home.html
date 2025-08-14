@@ -26,6 +26,25 @@
     footer{display:flex;align-items:center;justify-content:space-between;padding:22px 0 40px;color:var(--muted)}
   </style>
 </head>
+  <script>
+  // Blocca l’accesso se non c’è il token
+  if (!localStorage.getItem('damiano_token')) {
+    location.replace('index.html');
+  }
+
+  const API = localStorage.getItem('damiano_api') || 'https://damiano-backend-ancz.onrender.com';
+
+  // Logout
+  const btn = document.getElementById('btnLogout'); // assicurati che il bottone abbia id="btnLogout"
+  if (btn) {
+    btn.type = 'button';
+    btn.addEventListener('click', () => {
+      localStorage.removeItem('damiano_token');
+      localStorage.removeItem('damiano_user');
+      location.replace('index.html');
+    });
+  }
+</script>
 <body>
   <div class="container">
     <header>
@@ -40,5 +59,6 @@
         <button id="btnLogout" class="btn" title="Esci">
           <i class="lucide-log-out"></i> Esci
         </but
+
 
 
