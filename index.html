@@ -32,6 +32,11 @@
   </style>
 </head>
 <body>
+  <script>
+  if (localStorage.getItem('damiano_token')) {
+    location.replace('home.html');
+  }
+</script>
   <div class="container">
     <header class="header">
       <div class="brand">
@@ -120,4 +125,5 @@
   </script>
 </body>
 </html>
+
 
