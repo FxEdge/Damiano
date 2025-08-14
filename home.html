@@ -7,58 +7,55 @@
   <link rel="icon" href="assets/logo.svg">
   <link href="https://unpkg.com/lucide-static/font/lucide.css" rel="stylesheet">
   <style>
-    :root { --bg:#f3f4f6; --surface:#ffffff; --text:#111827; --muted:#6b7280; --primary:#2563eb; --border:#e5e7eb; --shadow:0 4px 12px rgba(0,0,0,.06) }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial;background:var(--bg);color:var(--text)}
-    .container{width:min(1100px,92%);margin-inline:auto;padding:20px}
-    header{display:flex;align-items:center;justify-content:space-between;padding:16px 0}
-    .brand{display:flex;align-items:center;gap:10px;font-weight:700}
-    .logo{width:36px;height:36px}
-    h1{margin:0;font-size:1.8rem}
-    .date{color:var(--muted);margin-bottom:6px}
-    .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:16px;margin-top:14px}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
-    .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:#fff;padding:10px 14px;border-radius:12px;cursor:pointer}
-    .btn-primary{background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;color:#fff}
-    .muted{color:var(--muted)}
-    code{background:#f3f4f6;padding:2px 6px;border-radius:6px}
-    pre{background:#0b1020;color:#cfe3ff;padding:12px;border-radius:10px;overflow:auto;margin:0}
-    footer{display:flex;align-items:center;justify-content:space-between;padding:22px 0 40px;color:var(--muted)}
+    :root { --bg:#f3f4f6; --surface:#ffffff; --text:#111827; --muted:#6b7280; --primary:#2563eb; --border:#e5e7eb; --shadow:0 4px 12px rgba(0,0,0,0.06); }
+    body { margin:0; font-family: system-ui, sans-serif; background:var(--bg); color:var(--text); }
+    .container { width: min(1100px, 92%); margin-inline: auto; padding: 20px; }
+    header { display:flex; align-items:center; justify-content:space-between; padding: 16px 0; }
+    .brand { display:flex; align-items:center; gap:10px; font-weight:700; }
+    .logo { width:36px; height:36px; }
+    h1 { margin: 0; font-size: 1.8rem; }
+    .date { color: var(--muted); margin-bottom: 6px; }
+    .btn { border: 1px solid var(--border); background: var(--surface); padding: 8px 14px; border-radius: 12px; cursor: pointer; }
+    .btn:hover { background: #f9fafb; }
   </style>
 </head>
-  <script>
-  // Blocca l’accesso se non c’è il token
-  if (!localStorage.getItem('damiano_token')) {
-    location.replace('index.html');
-  }
-
-  const API = localStorage.getItem('damiano_api') || 'https://damiano-backend-ancz.onrender.com';
-
-  // Logout
-  const btn = document.getElementById('btnLogout'); // assicurati che il bottone abbia id="btnLogout"
-  if (btn) {
-    btn.type = 'button';
-    btn.addEventListener('click', () => {
-      localStorage.removeItem('damiano_token');
-      localStorage.removeItem('damiano_user');
-      location.replace('index.html');
-    });
-  }
-</script>
 <body>
   <div class="container">
     <header>
       <div class="brand">
-        <img class="logo" src="assets/logo.svg" alt="Damiano Logo">
-        <div>
-          <div class="date" id="today"></div>
-          <h1>Damiano – Home</h1>
-        </div>
+        <img src="assets/logo.svg" alt="Damiano Logo" class="logo"/>
+        <h1>Damiano – Home</h1>
       </div>
-      <div class="row">
-        <button id="btnLogout" class="btn" title="Esci">
-          <i class="lucide-log-out"></i> Esci
-        </but
+      <button id="btnLogout" class="btn">Esci</button>
+    </header>
+    <main>
+      <p class="date" id="today"></p>
+    </main>
+  </div>
+
+  <script>
+    // Mostra la data di oggi
+    document.getElementById('today').textContent = new Date().toLocaleDateString('it-IT', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+
+    // Logout: rimuove token e utente, poi torna al login
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('btnLogout');
+      if (btn) {
+        btn.type = 'button';
+        btn.addEventListener('click', () => {
+          localStorage.removeItem('damiano_token');
+          localStorage.removeItem('damiano_user');
+          location.replace('index.html');
+        });
+      }
+    });
+  </script>
+</body>
+</html>
+
+
 
 
 
