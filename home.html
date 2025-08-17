@@ -21,6 +21,11 @@
     .muted{color:var(--muted)}
     .report{display:grid;gap:8px}
     .report .box{border:1px dashed var(--border);border-radius:12px;padding:10px}
+
+    /* === NUOVO: metti i tre bottoni in colonna e a tutta larghezza === */
+    .actions-stack{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+    .actions-stack .btn-primary{width:100%;text-align:left}
+    .actions-stack .btn-primary:hover{filter:brightness(0.95)}
   </style>
 </head>
 <body>
@@ -41,14 +46,16 @@
       <section class="card">
         <h2>Sezione Dati</h2>
         <p class="muted">Gestisci le schede clienti.</p>
-        <div>
+
+        <!-- SOLO QUESTO BLOCCO È CAMBIATO -->
+        <div class="actions-stack">
           <a href="new.html" class="btn btn-primary">➕ Nuovo inserimento</a>
-          <a href="search.html?mode=edit" class="btn">✏️ Modifica inserimento</a>
-          <a href="search.html?mode=view" class="btn">👁️ Visualizzazione inserimento</a>
+          <a href="search.html?mode=edit" class="btn btn-primary">✏️ Modifica inserimento</a>
+          <a href="search.html?mode=view" class="btn btn-primary">👁️ Visualizzazione inserimento</a>
         </div>
       </section>
 
-      <!-- Sezione Report -->
+      <!-- Sezione Report (INVARIATA) -->
       <section class="card">
         <h2>Sezione Report</h2>
         <div class="report">
@@ -79,13 +86,14 @@
       location.replace('index.html');
     });
 
-    // Stub report: puoi collegare poi alle tue API reali
+    // Stub report
     document.getElementById('rep1').textContent = '0';
     document.getElementById('rep2').textContent = '0';
     document.getElementById('rep3').textContent = '—';
   </script>
 </body>
 </html>
+
 
 
 
