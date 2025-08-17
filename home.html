@@ -3,47 +3,74 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Damiano – Home</title>
+  <title>Damiano – Dashboard</title>
   <link rel="icon" href="assets/logo.svg">
-  <link href="https://unpkg.com/lucide-static/font/lucide.css" rel="stylesheet">
   <style>
-    :root { --bg:#f3f4f6; --surface:#ffffff; --text:#111827; --muted:#6b7280; --primary:#2563eb; --border:#e5e7eb; --shadow:0 4px 12px rgba(0,0,0,0.06); }
-    body { margin:0; font-family: system-ui, sans-serif; background:var(--bg); color:var(--text); }
-    .container { width: min(1100px, 92%); margin-inline: auto; padding: 20px; }
-    header { display:flex; align-items:center; justify-content:space-between; padding: 16px 0; }
-    .brand { display:flex; align-items:center; gap:10px; font-weight:700; }
-    .logo { width:36px; height:36px; }
-    h1 { margin: 0; font-size: 1.8rem; }
-    .date { color: var(--muted); margin-bottom: 6px; }
-    .btn { border: 1px solid var(--border); background: var(--surface); padding: 8px 14px; border-radius: 12px; cursor: pointer; }
-    .btn:hover { background: #f9fafb; }
+    :root{--bg:#f3f4f6;--surface:#fff;--text:#111827;--muted:#6b7280;--border:#e5e7eb;--shadow:0 6px 18px rgba(0,0,0,.06);--primary:#2563eb}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial}
+    .wrap{width:min(1100px,92%);margin-inline:auto;padding:20px}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{width:36px;height:36px}
+    h1{margin:0;font-size:1.5rem}
+    .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:16px}
+    .card h2{margin:0 0 10px;font-size:1.1rem}
+    .btn{display:inline-block;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:#fff;cursor:pointer;margin:6px 6px 0 0}
+    .btn-primary{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none}
+    .muted{color:var(--muted)}
+    .report{display:grid;gap:8px}
+    .report .box{border:1px dashed var(--border);border-radius:12px;padding:10px}
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="wrap">
     <header>
       <div class="brand">
-        <img src="assets/logo.svg" alt="Damiano Logo" class="logo"/>
-        <h1>Damiano – Home</h1>
+        <img src="assets/logo.svg" class="logo" alt="Damiano">
+        <div>
+          <div class="muted" id="today"></div>
+          <h1>Dashboard</h1>
+        </div>
       </div>
       <button id="btnLogout" class="btn">Esci</button>
     </header>
-    <main>
-      <p class="date" id="today"></p>
-    </main>
+
+    <div class="grid">
+      <!-- Sezione Dati -->
+      <section class="card">
+        <h2>Sezione Dati</h2>
+        <p class="muted">Gestisci le schede clienti.</p>
+        <div>
+          <a href="new.html" class="btn btn-primary">➕ Nuovo inserimento</a>
+          <a href="search.html?mode=edit" class="btn">✏️ Modifica inserimento</a>
+          <a href="search.html?mode=view" class="btn">👁️ Visualizzazione inserimento</a>
+        </div>
+      </section>
+
+      <!-- Sezione Report -->
+      <section class="card">
+        <h2>Sezione Report</h2>
+        <div class="report">
+          <div class="box">📧 Mail inviate mese — <span id="rep1" class="muted">carico…</span></div>
+          <div class="box">📆 Da inviare mese prossimo — <span id="rep2" class="muted">carico…</span></div>
+          <div class="box">📈 Report 3 — <span id="rep3" class="muted">carico…</span></div>
+        </div>
+      </section>
+    </div>
+
+    <p class="muted" style="margin-top:14px">API: <code id="apiInUso"></code></p>
   </div>
 
   <script>
-    // Controllo accesso: se non c'è token, torna al login
-    const token = localStorage.getItem('damiano_token');
-    if (!token) {
-      location.replace('index.html');
-    }
+    // Guard: serve token
+    if (!localStorage.getItem('damiano_token')) { location.replace('index.html'); }
 
-    // Mostra la data di oggi
-    document.getElementById('today').textContent = new Date().toLocaleDateString('it-IT', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-    });
+    const DEFAULT_API = 'https://damiano-backend-ancz.onrender.com';
+    const API = localStorage.getItem('damiano_api') || DEFAULT_API;
+
+    document.getElementById('today').textContent = new Date().toLocaleString('it-IT', {dateStyle:'full', timeStyle:'short'});
+    document.getElementById('apiInUso').textContent = API;
 
     // Logout
     document.getElementById('btnLogout').addEventListener('click', () => {
@@ -51,6 +78,11 @@
       localStorage.removeItem('damiano_user');
       location.replace('index.html');
     });
+
+    // Stub report: puoi collegare poi alle tue API reali
+    document.getElementById('rep1').textContent = '0';
+    document.getElementById('rep2').textContent = '0';
+    document.getElementById('rep3').textContent = '—';
   </script>
 </body>
 </html>
