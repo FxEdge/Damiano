@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ricerca – Damiano</title>
+  <link rel="icon" href="assets/logo.svg">
+  <style>
+    body{margin:0;background:#f3f4f6;font-family:system-ui}
+    .wrap{width:min(900px,92%);margin:auto;padding:20px}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px}
+    input{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px}
+    .list{margin-top:10px}
+    .item{padding:10px;border-bottom:1px solid #e5e7eb;cursor:pointer}
+    .muted{color:#6b7280}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Ricerca</h1>
+    <p class="muted">Digita nome/cognome/email per filtrare.</p>
+    <section class="card">
+      <input id="q" placeholder="Cerca..." autofocus/>
+      <div id="list" class="list"></div>
+    </section>
+  </div>
+
+  <script>
+    if (!localStorage.getItem('damiano_token')) location.replace('index.html');
+
+    const DEFAULT_API = 'https://damiano-backend-ancz.onrender.com';
+    const API = localStorage.getItem('damiano_api') || DEFAULT_API;
+
+    const params = new URLSearchParams(location.search);
+    const mode = params.get('mode') || 'view'; // edit | view
+
+    const $ = s => document.querySelector(s);
+    const list = $('#list');
+    const q = $('#q');
+    let records = [];
+
+    async function load() {
+      const r = await fetch(API + '/records');
+      const d = await r.json();
+      records = d.records || [];
+      render();
+    }
+
+    function render() {
+      const term = q.value.toLowerCase().trim();
+      list.innerHTML = '';
+      records
+        .filter(r =>
+          !term ||
+          (r.nome||'').toLowerCase().includes(term) ||
+          (r.cognome||'').toLowerCase().includes(term) ||
+          (r.email||'').toLowerCase().includes(term)
+        )
+        .forEach(r => {
+          const div = document.createElement('div');
+          div.className = 'item';
+          div.textContent = `${r.nome||''} ${r.cognome||''} — ${r.email||''}`;
+          div.addEventListener('click', () => {
+            location.href = `detail.html?id=${encodeURIComponent(r.id)}&mode=${mode}`;
+          });
+          list.appendChild(div);
+        });
+    }
+
+    q.addEventListener('input', render);
+    load();
+  </script>
+</body>
+</html>
