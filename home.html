@@ -22,6 +22,29 @@
     .report{display:grid;gap:8px}
     .report .box{border:1px dashed var(--border);border-radius:12px;padding:10px}
   </style>
+  .buttons {
+  display: flex;
+  flex-direction: column;   /* in fila verticale */
+  gap: 12px;                /* spazio tra i bottoni */
+  margin-top: 16px;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+  text-align: left;
+}
+
+.btn-primary:hover {
+  background: #1e40af;
+}
+
 </head>
 <body>
   <div class="wrap">
@@ -36,16 +59,17 @@
       <button id="btnLogout" class="btn">Esci</button>
     </header>
 
-    <div class="grid">
+   <div class="card">
       <!-- Sezione Dati -->
       <section class="card">
         <h2>Sezione Dati</h2>
-        <p class="muted">Gestisci le schede clienti.</p>
-        <div>
-          <a href="new.html" class="btn btn-primary">➕ Nuovo inserimento</a>
-          <a href="search.html?mode=edit" class="btn">✏️ Modifica inserimento</a>
-          <a href="search.html?mode=view" class="btn">👁️ Visualizzazione inserimento</a>
-        </div>
+  <p>Gestisci le schede clienti.</p>
+          <div class="buttons">
+    <button class="btn-primary" onclick="location.href='new.html'">➕ Nuovo inserimento</button>
+    <button class="btn-primary" onclick="location.href='edit.html'">✏️ Modifica inserimento</button>
+    <button class="btn-primary" onclick="location.href='view.html'">👁️ Visualizzazione inserimento</button>
+  </div>
+</div>
       </section>
 
       <!-- Sezione Report -->
@@ -86,4 +110,5 @@
   </script>
 </body>
 </html>
+
 
