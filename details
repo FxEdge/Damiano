@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scheda cliente – Damiano</title>
+  <link rel="icon" href="assets/logo.svg">
+  <style>
+    body{margin:0;background:#f3f4f6;font-family:system-ui}
+    .wrap{width:min(900px,92%);margin:auto;padding:20px}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    label{font-size:12px;color:#6b7280}
+    input{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px}
+    .row{display:flex;gap:8px;margin-top:12px}
+    .btn{padding:10px 14px;border-radius:10px;border:1px solid #e5e7eb;background:#fff;cursor:pointer}
+    .primary{background:#2563eb;border:none;color:#fff}
+    .muted{color:#6b7280}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 id="title">Scheda cliente</h1>
+    <section class="card">
+      <div class="grid">
+        <div><label>Nome</label><input id="nome" /></div>
+        <div><label>Cognome</label><input id="cognome" /></div>
+        <div><label>Email</label><input id="email" type="email"/></div>
+        <div><label>Telefono</label><input id="telefono"/></div>
+        <div><label>Indirizzo</label><input id="indirizzo1"/></div>
+        <div><label>Città</label><input id="citta"/></div>
+      </div>
+      <div class="row">
+        <button id="btnBack" class="btn">⬅️ Indietro</button>
+        <button id="btnSave" class="btn primary" style="display:none">💾 Salva</button>
+      </div>
+      <p id="status" class="muted"></p>
+    </section>
+  </div>
+
+  <script>
+    if (!localStorage.getItem('damiano_token')) location.replace('index.html');
+
+    const DEFAULT_API = 'https://damiano-backend-ancz.onrender.com';
+    const API = localStorage.getItem('damiano_api') || DEFAULT_API;
+
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    const mode = params.get('mode') || 'view';
+
+    const $ = s => document.querySelector(s);
+    const status = $('#status');
+
+    document.getElementById('title').textContent = 'Scheda cliente (' + mode + ')';
+    if (mode === 'edit') document.getElementById('btnSave').style.display = '';
+
+    function fill(r){
+      $('#nome').value = r.nome || '';
+      $('#cognome').value = r.cognome || '';
+      $('#email').value = r.email || '';
+      $('#telefono').value = r.telefono || '';
+      $('#indirizzo1').value = r.indirizzo1 || '';
+      $('#citta').value = r.citta || '';
+      // readonly se view
+      const ro = (mode !== 'edit');
+      document.querySelectorAll('input').forEach(i => i.disabled = ro);
+    }
+
+    async function load(){
+      const r = await fetch(API + '/records');
+      const d = await r.json();
+      const rec = (d.records || []).find(x => x.id === id);
+      if (!rec) { status.textContent = 'Record non trovato'; return; }
+      fill(rec);
+    }
+
+    async function save(){
+      const body = {
+        nome: $('#nome').value.trim(),
+        cognome: $('#cognome').value.trim(),
+        email: $('#email').value.trim(),
+        telefono: $('#telefono').value.trim(),
+        indirizzo1: $('#indirizzo1').value.trim(),
+        citta: $('#citta').value.trim(),
+      };
+      const r = await fetch(API + '/records/' + id, {
+        method:'PUT', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(body),
+      });
+      await r.json().catch(()=>{});
+      status.textContent = 'Salvato ✓';
+    }
+
+    document.getElementById('btnBack').addEventListener('click', () => history.back());
+    document.getElementById('btnSave').addEventListener('click', save);
+
+    load();
+  </script>
+</body>
+</html>
