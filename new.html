@@ -1,79 +1,100 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Nuovo Inserimento – Damiano</title>
   <link rel="icon" href="assets/logo.svg">
   <style>
-    body { font-family: system-ui, sans-serif; background:#f3f4f6; margin:0; }
-    .container { max-width:800px; margin:20px auto; background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.06);}
-    h1 { margin-top:0; }
-    label { display:block; margin-top:10px; font-size:14px; color:#374151; }
-    input, select, textarea { width:100%; padding:8px; border:1px solid #ddd; border-radius:8px; margin-top:4px; }
-    textarea { resize:vertical; min-height:100px; }
-    .actions { display:flex; gap:10px; margin-top:20px; }
-    .btn { padding:10px 16px; border:none; border-radius:8px; cursor:pointer; }
-    .btn-primary { background:#2563eb; color:#fff; }
-    .btn-secondary { background:#e5e7eb; }
-    .edit-btn { margin-top:4px; font-size:12px; background:#ddd; padding:4px 8px; border-radius:6px; cursor:pointer; border:none; }
-    .status { margin-top:15px; min-height:20px; font-size:14px; }
-    .error { color:#b91c1c; }
-    .success { color:#065f46; }
+    :root{--bg:#f3f4f6;--surface:#fff;--text:#111827;--muted:#6b7280;--border:#e5e7eb;--shadow:0 6px 18px rgba(0,0,0,.06);--primary:#2563eb}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto}
+    .container{max-width:900px;margin:20px auto;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:18px}
+    h1{margin:0 0 6px}
+    p.muted{margin:0 0 14px;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{font-size:12px;color:var(--muted)}
+    input,select,textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:#fff}
+    textarea{min-height:110px;resize:vertical}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:#fff;cursor:pointer}
+    .btn-primary{background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;color:#fff}
+    .hint{font-size:12px;color:var(--muted)}
+    .err{color:#b91c1c;font-size:12px;margin-top:4px;display:none}
+    .status{min-height:22px;margin-top:10px}
+    .ok{color:#065f46} .bad{color:#b91c1c}
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Nuovo Inserimento Cliente</h1>
-    <form id="formNew">
-      <!-- 1.1 Nome -->
-      <label for="nome">Nome *</label>
-      <input id="nome" name="nome" required />
+    <p class="muted">Compila i campi. Nome e Cognome sono obbligatori. In caso di duplicato potrai scegliere se sovrascrivere.</p>
 
-      <!-- 1.2 Cognome -->
-      <label for="cognome">Cognome *</label>
-      <input id="cognome" name="cognome" required />
+    <form id="formNew" novalidate>
+      <!-- Colonna sinistra -->
+      <div class="grid">
+        <div>
+          <label>Nome *</label>
+          <input id="nome" required />
+          <div id="err-nome" class="err">Inserisci il nome</div>
 
-      <!-- 1.3 Telefono -->
-      <label>Telefono</label>
-      <select id="prefisso">
-        <option value="+39" selected>🇮🇹 +39 Italia</option>
-        <option value="+33">🇫🇷 +33 Francia</option>
-        <option value="+49">🇩🇪 +49 Germania</option>
-        <option value="+41">🇨🇭 +41 Svizzera</option>
-      </select>
-      <input id="telefono" name="telefono" placeholder="Numero di telefono" />
+          <label style="margin-top:10px">Cognome *</label>
+          <input id="cognome" required />
+          <div id="err-cognome" class="err">Inserisci il cognome</div>
 
-      <!-- 1.4 Email -->
-      <label for="email">Email</label>
-      <input id="email" name="email" type="email" />
+          <label style="margin-top:10px">Telefono</label>
+          <div class="row">
+            <select id="prefisso" style="min-width:140px">
+              <option value="+39" selected>🇮🇹 +39 Italia</option>
+              <option value="+33">🇫🇷 +33 Francia</option>
+              <option value="+49">🇩🇪 +49 Germania</option>
+              <option value="+41">🇨🇭 +41 Svizzera</option>
+              <option value="+44">🇬🇧 +44 UK</option>
+              <option value="+1">🇺🇸 +1 USA</option>
+            </select>
+            <input id="telefono" placeholder="Numero" inputmode="tel" />
+          </div>
 
-      <!-- 1.5 Defunto -->
-      <label>Nome Defunto</label>
-      <input id="def_nome" />
-      <label>Cognome Defunto</label>
-      <input id="def_cognome" />
-      <label>Data Decesso</label>
-      <input id="def_data" type="date" />
+          <label style="margin-top:10px">Email</label>
+          <input id="email" type="email" placeholder="nome@dominio.it" />
+          <div id="err-email" class="err">Inserisci un indirizzo email valido</div>
+        </div>
 
-      <!-- 1.6 Giorni prima -->
-      <label for="giorni_prima">Giorni Prima Invio</label>
-      <input id="giorni_prima" type="number" min="0" />
+        <!-- Colonna destra -->
+        <div>
+          <label>Nome Defunto</label>
+          <input id="def_nome" />
 
-      <!-- 1.7 Oggetto -->
-      <label for="oggetto">Oggetto Mail</label>
-      <input id="oggetto" readonly />
-      <button type="button" class="edit-btn" id="btnOggetto">Cambia Oggetto</button>
+          <label style="margin-top:10px">Cognome Defunto</label>
+          <input id="def_cognome" />
 
-      <!-- 1.8 Corpo -->
-      <label for="corpo">Corpo Messaggio</label>
-      <textarea id="corpo" readonly></textarea>
-      <button type="button" class="edit-btn" id="btnCorpo">Cambia Messaggio</button>
+          <label style="margin-top:10px">Data Decesso (Ricorrenza)</label>
+          <input id="def_data" type="date" />
 
-      <!-- Actions -->
-      <div class="actions">
-        <button type="submit" class="btn btn-primary">Salva i dati</button>
-        <button type="button" class="btn btn-secondary" id="btnHome">Torna alla Home</button>
+          <label style="margin-top:10px">Giorni prima dell’invio</label>
+          <input id="giorni_prima" type="number" min="0" placeholder="solo numeri" />
+          <div id="err-giorni" class="err">Inserisci solo numeri (>= 0)</div>
+        </div>
+      </div>
+
+      <hr style="margin:16px 0;border:none;border-top:1px solid var(--border)">
+
+      <label>Oggetto della mail</label>
+      <div class="row">
+        <input id="oggetto" style="flex:1" value="In memoria di {{NOME}} {{COGNOME}}" readonly />
+        <button type="button" id="btnOggetto" class="btn">Cambia oggetto</button>
+      </div>
+      <div class="hint">Nasce non editabile. Clicca “Cambia oggetto”, modifica, poi riclicca per bloccarlo.</div>
+
+      <label style="margin-top:10px">Corpo del messaggio</label>
+      <div class="row">
+        <textarea id="corpo" style="flex:1" readonly>Gentile {{NOME}} {{COGNOME}},&#10;ti ricordiamo con affetto in questa ricorrenza.&#10;—</textarea>
+        <button type="button" id="btnCorpo" class="btn">Cambia Messaggio</button>
+      </div>
+      <div class="hint">Nasce non editabile. Clicca “Cambia Messaggio”, modifica, poi riclicca per bloccarlo.</div>
+
+      <div class="row" style="margin-top:12px">
+        <button class="btn btn-primary" type="submit">💾 Salva i dati</button>
+        <button class="btn" type="button" id="btnHome">🏠 Torna alla Home</button>
       </div>
 
       <p id="status" class="status"></p>
@@ -81,43 +102,20 @@
   </div>
 
   <script>
+    // Protezione: serve login
+    if (!localStorage.getItem('damiano_token')) location.replace('index.html');
+
     const API = localStorage.getItem("damiano_api") || "https://damiano-backend-ancz.onrender.com";
     const token = localStorage.getItem("damiano_token");
-
     const $ = s => document.querySelector(s);
     const status = $('#status');
 
-    // toggle oggetto
-    $('#btnOggetto').addEventListener('click', () => {
-      const field = $('#oggetto');
-      if (field.readOnly) {
-        field.readOnly = false;
-        $('#btnOggetto').textContent = 'Salva';
-      } else {
-        field.readOnly = true;
-        $('#btnOggetto').textContent = 'Cambia Oggetto';
-      }
-    });
+    // util
+    const norm = s => (s ?? '').toString().trim().toLowerCase();
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
 
-    // toggle corpo
-    $('#btnCorpo').addEventListener('click', () => {
-      const field = $('#corpo');
-      if (field.readOnly) {
-        field.readOnly = false;
-        $('#btnCorpo').textContent = 'Salva';
-      } else {
-        field.readOnly = true;
-        $('#btnCorpo').textContent = 'Cambia Messaggio';
-      }
-    });
-
-    // salva form
-    $('#formNew').addEventListener('submit', async e => {
-      e.preventDefault();
-      status.textContent = "Salvataggio in corso...";
-      status.className = "status";
-
-      const body = {
+    function payloadFromForm() {
+      return {
         nome: $('#nome').value.trim(),
         cognome: $('#cognome').value.trim(),
         telefono_prefisso: $('#prefisso').value,
@@ -125,45 +123,133 @@
         email: $('#email').value.trim(),
         def_nome: $('#def_nome').value.trim(),
         def_cognome: $('#def_cognome').value.trim(),
-        def_data: $('#def_data').value,
-        giorni_prima: parseInt($('#giorni_prima').value || "0"),
+        def_data: $('#def_data').value || null,
+        giorni_prima: $('#giorni_prima').value ? parseInt($('#giorni_prima').value, 10) : null,
         oggetto: $('#oggetto').value.trim(),
         corpo: $('#corpo').value.trim()
       };
+    }
+
+    function validate(body){
+      let ok = true;
+      // nome/cognome obbligatori
+      if (!body.nome){ $('#err-nome').style.display='block'; ok=false; } else $('#err-nome').style.display='none';
+      if (!body.cognome){ $('#err-cognome').style.display='block'; ok=false; } else $('#err-cognome').style.display='none';
+      // email se presente deve essere valida
+      if (body.email && !emailRe.test(body.email)){ $('#err-email').style.display='block'; ok=false; } else $('#err-email').style.display='none';
+      // giorni_prima numerico se presente
+      if (body.giorni_prima !== null && (isNaN(body.giorni_prima) || body.giorni_prima < 0)){ $('#err-giorni').style.display='block'; ok=false; } else $('#err-giorni').style.display='none';
+      return ok;
+    }
+
+    async function findDuplicateId(body){
+      // replica il criterio del backend (persona + defunto)
+      const r = await fetch(API + "/records");
+      const d = await r.json();
+      const list = d.records || [];
+      const hit = list.find(x =>
+        norm(x.nome)            === norm(body.nome) &&
+        norm(x.cognome)         === norm(body.cognome) &&
+        norm(x.email)           === norm(body.email) &&
+        norm(x.telefono_numero) === norm(body.telefono_numero) &&
+        norm(x.def_nome)        === norm(body.def_nome) &&
+        norm(x.def_cognome)     === norm(body.def_cognome)
+        // Se nel backend includi anche la data:
+        // && norm(x.def_data)   === norm(body.def_data)
+      );
+      return hit ? hit.id : null;
+    }
+
+    async function doPOST(body){
+      return fetch(API + "/records", {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "Authorization":"Bearer " + (token || "")
+        },
+        body: JSON.stringify(body)
+      });
+    }
+
+    async function doPUT(id, body){
+      return fetch(API + "/records/" + id, {
+        method:"PUT",
+        headers:{
+          "Content-Type":"application/json",
+          "Authorization":"Bearer " + (token || "")
+        },
+        body: JSON.stringify(body)
+      });
+    }
+
+    // Submit con gestione 409 → conferma → PUT
+    $('#formNew').addEventListener('submit', async e => {
+      e.preventDefault();
+      const body = payloadFromForm();
+      status.textContent = "Salvataggio in corso...";
+      status.className = "status";
+
+      if (!validate(body)){
+        status.textContent = "Correggi i campi evidenziati.";
+        status.classList.add("bad");
+        return;
+      }
 
       try {
-        const res = await fetch(API + "/records", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + token
-          },
-          body: JSON.stringify(body)
-        });
+        const res = await doPOST(body);
 
-        if (!res.ok) {
-          const err = await res.json().catch(()=>({detail:"Errore"}));
-          throw new Error(err.detail);
+        if (res.status === 409) {
+          const conferma = confirm("Contatto duplicato (persona + defunto già presente). Vuoi sovrascrivere?");
+          if (!conferma){
+            status.textContent = "Operazione annullata.";
+            status.classList.add("bad");
+            return;
+          }
+          const dupId = await findDuplicateId(body);
+          if (!dupId){
+            status.textContent = "Impossibile individuare il record duplicato per la sovrascrittura.";
+            status.classList.add("bad");
+            return;
+          }
+          const r2 = await doPUT(dupId, body);
+          if (!r2.ok){
+            const err2 = await r2.json().catch(()=>({detail:"Errore salvataggio (PUT)"}));
+            throw new Error(err2.detail || "Errore salvataggio (PUT)");
+          }
+          status.textContent = "✅ Dati sovrascritti correttamente.";
+          status.classList.add("ok");
+          $('#formNew').reset();
+          return;
         }
 
-        const data = await res.json();
-        status.textContent = "✅ Dati salvati correttamente!";
-        status.classList.add("success");
+        if (!res.ok){
+          const err = await res.json().catch(()=>({detail:"Errore"}));
+          throw new Error(err.detail || `Errore ${res.status}`);
+        }
 
-        // reset form (nuovo inserimento pronto)
+        await res.json();
+        status.textContent = "✅ Dati salvati correttamente!";
+        status.classList.add("ok");
         $('#formNew').reset();
 
       } catch (err) {
-        status.textContent = "❌ " + (err.message || "Errore salvataggio");
-        status.classList.add("error");
+        status.textContent = "❌ " + (err?.message || "Errore salvataggio");
+        status.classList.add("bad");
       }
     });
 
-    // torna alla home
-    $('#btnHome').addEventListener('click', () => {
-      location.href = "home.html";
+    // Torna alla Home
+    $('#btnHome').addEventListener('click', () => location.href = "home.html");
+
+    // Toggle oggetto/corpo
+    $('#btnOggetto').addEventListener('click', () => {
+      const f = $('#oggetto'); f.readOnly = !f.readOnly;
+      $('#btnOggetto').textContent = f.readOnly ? 'Cambia oggetto' : 'Salva';
+    });
+    $('#btnCorpo').addEventListener('click', () => {
+      const f = $('#corpo'); f.readOnly = !f.readOnly;
+      $('#btnCorpo').textContent = f.readOnly ? 'Cambia Messaggio' : 'Salva';
     });
   </script>
 </body>
 </html>
-
