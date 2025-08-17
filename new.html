@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nuovo inserimento – Damiano</title>
+  <link rel="icon" href="assets/logo.svg">
+  <style>
+    body{margin:0;background:#f3f4f6;font-family:system-ui,-apple-system,Segoe UI,Roboto}
+    .wrap{width:min(900px,92%);margin:auto;padding:20px}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    label{font-size:12px;color:#6b7280}
+    input{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px}
+    .row{display:flex;gap:8px;margin-top:12px}
+    .btn{padding:10px 14px;border-radius:10px;border:1px solid #e5e7eb;background:#fff;cursor:pointer}
+    .primary{background:#2563eb;border:none;color:#fff}
+    .muted{color:#6b7280}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Nuovo inserimento</h1>
+    <p class="muted">I dati vengono salvati automaticamente quando lasci la pagina.</p>
+    <section class="card">
+      <div class="grid">
+        <div><label>Nome</label><input id="nome" /></div>
+        <div><label>Cognome</label><input id="cognome" /></div>
+        <div><label>Email</label><input id="email" type="email" /></div>
+        <div><label>Telefono</label><input id="telefono" /></div>
+        <div><label>Indirizzo</label><input id="indirizzo1" /></div>
+        <div><label>Città</label><input id="citta" /></div>
+      </div>
+      <div class="row">
+        <button id="btnBack" class="btn">⬅️ Torna alla Dashboard</button>
+        <button id="btnSave" class="btn primary">💾 Salva ora</button>
+      </div>
+      <p id="status" class="muted"></p>
+    </section>
+  </div>
+
+  <script>
+    if (!localStorage.getItem('damiano_token')) location.replace('index.html');
+
+    const DEFAULT_API = 'https://damiano-backend-ancz.onrender.com';
+    const API = localStorage.getItem('damiano_api') || DEFAULT_API;
+
+    const $ = s => document.querySelector(s);
+    const status = $('#status');
+
+    let rid = null;       // record id
+    let dirty = false;    // ci sono modifiche non salvate?
+
+    // Al primo input, se non esiste ancora, crea il record (POST)
+    async function ensureRecord() {
+      if (rid) return;
+      const body = collect();
+      const r = await fetch(API + '/records', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(body),
+      });
+      const data = await r.json();
+      rid = data.id;
+      status.textContent = 'Bozza creata (id: ' + rid.slice(0,8) + '…)';
+    }
+
+    function collect() {
+      return {
+        nome: $('#nome').value.trim(),
+        cognome: $('#cognome').value.trim(),
+        email: $('#email').value.trim(),
+        telefono: $('#telefono').value.trim(),
+        indirizzo1: $('#indirizzo1').value.trim(),
+        citta: $('#citta').value.trim(),
+      };
+    }
+
+    async function save() {
+      if (!rid) { await ensureRecord(); }
+      const body = collect();
+      const r = await fetch(API + '/records/' + rid, {
+        method:'PUT', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(body),
+      });
+      await r.json().catch(()=>{});
+      dirty = false;
+      status.textContent = 'Salvato ✓';
+    }
+
+    // Eventi input → segna “dirty” e crea se serve
+    document.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('input', async () => {
+        dirty = true;
+        if (!rid) { await ensureRecord(); }
+      });
+    });
+
+    // Salva on-demand
+    $('#btnSave').addEventListener('click', async () => { await save(); });
+
+    // Torna alla dashboard
+    $('#btnBack').addEventListener('click', async () => {
+      if (dirty) await save();
+      location.href = 'home.html';
+    });
+
+    // Salva all’uscita della pagina
+    window.addEventListener('beforeunload', (e) => {
+      if (dirty) {
+        // Nota: le fetch async possono non completare su beforeunload.
+        // Teniamo un best-effort: invia una fetch senza attendere.
+        navigator.sendBeacon?.(API + '/records/' + rid, new Blob([JSON.stringify(collect())], {type:'application/json'}));
+      }
+    });
+  </script>
+</body>
+</html>
