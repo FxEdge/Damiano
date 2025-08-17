@@ -6,40 +6,126 @@
   <title>Nuovo inserimento – Damiano</title>
   <link rel="icon" href="assets/logo.svg">
   <style>
-    body{margin:0;background:#f3f4f6;font-family:system-ui,-apple-system,Segoe UI,Roboto}
-    .wrap{width:min(900px,92%);margin:auto;padding:20px}
-    .card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    label{font-size:12px;color:#6b7280}
-    input{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px}
-    .row{display:flex;gap:8px;margin-top:12px}
-    .btn{padding:10px 14px;border-radius:10px;border:1px solid #e5e7eb;background:#fff;cursor:pointer}
-    .primary{background:#2563eb;border:none;color:#fff}
-    .muted{color:#6b7280}
+    :root{--bg:#f3f4f6;--surface:#fff;--text:#111827;--muted:#6b7280;--border:#e5e7eb;--shadow:0 6px 18px rgba(0,0,0,.06);--primary:#2563eb}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto}
+    .wrap{width:min(980px,92%);margin-inline:auto;padding:20px}
+    h1{margin:0 0 8px;font-size:1.5rem}
+    p.muted{color:var(--muted);margin:0 0 14px}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:16px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    label{font-size:12px;color:var(--muted)}
+    input,select,textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:#fff}
+    textarea{min-height:110px;resize:vertical}
+    .btn{padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:#fff;cursor:pointer}
+    .btn-primary{background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;color:#fff}
+    .field-row{display:flex;gap:8px}
+    .flag{min-width:86px}
+    .hint{font-size:12px;color:var(--muted)}
+    .err{color:#b91c1c;font-size:12px;margin-top:4px;display:none}
+    .badge{display:inline-block;background:#eef2ff;color:#3730a3;border-radius:999px;padding:2px 8px;font-size:12px}
+    .lock{display:flex;gap:8px;align-items:center}
+    .status{min-height:20px;color:#065f46;margin-top:8px}
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>Nuovo inserimento</h1>
-    <p class="muted">I dati vengono salvati automaticamente quando lasci la pagina.</p>
+    <p class="muted">I dati vengono salvati automaticamente quando lasci la pagina. I campi contrassegnati sono obbligatori.</p>
+
     <section class="card">
       <div class="grid">
-        <div><label>Nome</label><input id="nome" /></div>
-        <div><label>Cognome</label><input id="cognome" /></div>
-        <div><label>Email</label><input id="email" type="email" /></div>
-        <div><label>Telefono</label><input id="telefono" /></div>
-        <div><label>Indirizzo</label><input id="indirizzo1" /></div>
-        <div><label>Città</label><input id="citta" /></div>
+        <!-- Colonna sinistra -->
+        <div>
+          <div>
+            <label>Nome <span class="badge">obbligatorio</span></label>
+            <input id="nome" required />
+            <div id="err-nome" class="err">Inserisci il nome</div>
+          </div>
+          <div>
+            <label>Cognome <span class="badge">obbligatorio</span></label>
+            <input id="cognome" required />
+            <div id="err-cognome" class="err">Inserisci il cognome</div>
+          </div>
+          <div>
+            <label>Telefono</label>
+            <div class="field-row">
+              <select id="tel_prefix" class="flag">
+                <option value="+39">🇮🇹 +39</option>
+                <option value="+41">🇨🇭 +41</option>
+                <option value="+43">🇦🇹 +43</option>
+                <option value="+33">🇫🇷 +33</option>
+                <option value="+34">🇪🇸 +34</option>
+                <option value="+49">🇩🇪 +49</option>
+                <option value="+44">🇬🇧 +44</option>
+                <option value="+1">🇺🇸 +1</option>
+              </select>
+              <input id="tel_number" placeholder="Numero di telefono" inputmode="tel" />
+            </div>
+          </div>
+          <div>
+            <label>Indirizzo email di contatto</label>
+            <input id="email" type="email" placeholder="nome@dominio.it" />
+            <div id="err-email" class="err">Inserisci un indirizzo email valido</div>
+          </div>
+        </div>
+
+        <!-- Colonna destra -->
+        <div>
+          <div class="field-row">
+            <div style="flex:1">
+              <label>Nome della persona defunta</label>
+              <input id="def_nome" />
+            </div>
+            <div style="flex:1">
+              <label>Cognome della persona defunta</label>
+              <input id="def_cognome" />
+            </div>
+          </div>
+          <div>
+            <label>Data decesso (Ricorrenza)</label>
+            <input id="def_data" type="date" />
+          </div>
+          <div>
+            <label>Giorni prima dell’invio</label>
+            <input id="giorni" inputmode="numeric" placeholder="solo numeri" />
+            <div id="err-giorni" class="err">Inserisci solo numeri (es. 7)</div>
+          </div>
+        </div>
       </div>
-      <div class="row">
-        <button id="btnBack" class="btn">⬅️ Torna alla Dashboard</button>
-        <button id="btnSave" class="btn primary">💾 Salva ora</button>
+
+      <hr style="margin:16px 0;border:none;border-top:1px solid var(--border)">
+
+      <!-- Oggetto: cambia/salva con lock -->
+      <div class="lock">
+        <div style="flex:1">
+          <label>Oggetto della mail</label>
+          <input id="oggetto" value="In memoria di {{NOME}} {{COGNOME}}" disabled />
+          <div class="hint">Questo campo nasce non editabile. Clicca “Cambia oggetto” per modificarlo.</div>
+        </div>
+        <button id="btnObj" class="btn" type="button">Cambia oggetto</button>
       </div>
-      <p id="status" class="muted"></p>
+
+      <!-- Corpo: cambia/salva con lock -->
+      <div class="lock" style="margin-top:12px">
+        <div style="flex:1">
+          <label>Corpo del messaggio</label>
+          <textarea id="corpo" disabled>Gentile {{NOME}} {{COGNOME}},&#10;ti ricordiamo con affetto in questa ricorrenza.&#10;—</textarea>
+          <div class="hint">Questo campo nasce non editabile. Clicca “Cambia Messaggio” per modificarlo.</div>
+        </div>
+        <button id="btnBody" class="btn" type="button">Cambia Messaggio</button>
+      </div>
+
+      <div class="row" style="margin-top:16px">
+        <button id="btnSave" class="btn btn-primary" type="button">💾 Salva i dati</button>
+        <button id="btnHome" class="btn" type="button">🏠 Torna alla home</button>
+      </div>
+      <div id="status" class="status"></div>
     </section>
   </div>
 
   <script>
+    // Protezione: serve login
     if (!localStorage.getItem('damiano_token')) location.replace('index.html');
 
     const DEFAULT_API = 'https://damiano-backend-ancz.onrender.com';
@@ -48,70 +134,193 @@
     const $ = s => document.querySelector(s);
     const status = $('#status');
 
-    let rid = null;       // record id
-    let dirty = false;    // ci sono modifiche non salvate?
+    // Helpers
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
+    const onlyDigits = v => /^\d+$/.test(v);
 
-    // Al primo input, se non esiste ancora, crea il record (POST)
-    async function ensureRecord() {
-      if (rid) return;
-      const body = collect();
-      const r = await fetch(API + '/records', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(body),
-      });
-      const data = await r.json();
-      rid = data.id;
-      status.textContent = 'Bozza creata (id: ' + rid.slice(0,8) + '…)';
-    }
+    // Stato record corrente (bozza creata al primo input)
+    let rid = null;
+    let dirty = false;
 
     function collect() {
       return {
+        // campi "classici"
         nome: $('#nome').value.trim(),
         cognome: $('#cognome').value.trim(),
         email: $('#email').value.trim(),
-        telefono: $('#telefono').value.trim(),
-        indirizzo1: $('#indirizzo1').value.trim(),
-        citta: $('#citta').value.trim(),
+        telefono: ($('#tel_prefix').value || '') + ($('#tel_number').value || ''),
+        // estesi (necessitano supporto lato backend per persistere tutti)
+        def_nome: $('#def_nome').value.trim(),
+        def_cognome: $('#def_cognome').value.trim(),
+        def_data: $('#def_data').value || null,
+        giorni_prima: $('#giorni').value.trim(),
+        oggetto: $('#oggetto').value,
+        corpo: $('#corpo').value
       };
     }
 
-    async function save() {
-      if (!rid) { await ensureRecord(); }
+    function validate() {
+      let ok = true;
+      // nome / cognome obbligatori
+      if (!$('#nome').value.trim()) { ok=false; $('#err-nome').style.display='block'; } else $('#err-nome').style.display='none';
+      if (!$('#cognome').value.trim()) { ok=false; $('#err-cognome').style.display='block'; } else $('#err-cognome').style.display='none';
+      // email se presente deve essere valida
+      const em = $('#email').value.trim();
+      if (em && !emailRe.test(em)) { ok=false; $('#err-email').style.display='block'; } else $('#err-email').style.display='none';
+      // giorni solo numeri (se valorizzato)
+      const g = $('#giorni').value.trim();
+      if (g && !onlyDigits(g)) { ok=false; $('#err-giorni').style.display='block'; } else $('#err-giorni').style.display='none';
+      return ok;
+    }
+
+    async function ensureDraft() {
+      if (rid) return;
+      // crea bozza solo se ha iniziato a scrivere qualcosa
       const body = collect();
+      const hasSomething = Object.values(body).some(v => (v ?? '').toString().trim().length > 0);
+      if (!hasSomething) return;
+      const r = await fetch(API + '/records', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+      });
+      const d = await r.json().catch(()=>({}));
+      if (d && d.id) {
+        rid = d.id;
+        status.textContent = 'Bozza creata (id: ' + rid.slice(0,8) + '…)';
+      }
+    }
+
+    async function savePUT() {
+      if (!rid) await ensureDraft();
+      if (!rid) return; // niente da salvare
       const r = await fetch(API + '/records/' + rid, {
         method:'PUT', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(body),
+        body: JSON.stringify(collect())
       });
       await r.json().catch(()=>{});
       dirty = false;
       status.textContent = 'Salvato ✓';
     }
 
-    // Eventi input → segna “dirty” e crea se serve
-    document.querySelectorAll('input').forEach(inp => {
-      inp.addEventListener('input', async () => {
+    // Cambia/Salva oggetto
+    $('#btnObj').addEventListener('click', async () => {
+      const inp = $('#oggetto');
+      if (inp.disabled) {
+        inp.disabled = false;
+        $('#btnObj').textContent = 'Salva';
+        inp.focus();
+      } else {
+        inp.disabled = true;
+        $('#btnObj').textContent = 'Cambia oggetto';
         dirty = true;
-        if (!rid) { await ensureRecord(); }
+        await savePUT(); // salva subito e blocca
+      }
+    });
+
+    // Cambia/Salva corpo
+    $('#btnBody').addEventListener('click', async () => {
+      const ta = $('#corpo');
+      if (ta.disabled) {
+        ta.disabled = false;
+        $('#btnBody').textContent = 'Salva';
+        ta.focus();
+      } else {
+        ta.disabled = true;
+        $('#btnBody').textContent = 'Cambia Messaggio';
+        dirty = true;
+        await savePUT(); // salva subito e blocca
+      }
+    });
+
+    // Segna dirty e crea bozza alla prima digitazione
+    document.querySelectorAll('input,textarea,select').forEach(el => {
+      el.addEventListener('input', async () => {
+        dirty = true;
+        await ensureDraft();
       });
     });
 
-    // Salva on-demand
-    $('#btnSave').addEventListener('click', async () => { await save(); });
+    // Controllo duplicati (stesso set completo di campi)
+    async function findDuplicate(payload) {
+      try {
+        const r = await fetch(API + '/records');
+        const d = await r.json();
+        const list = d.records || [];
+        return list.find(x =>
+          (x.nome||'')===payload.nome &&
+          (x.cognome||'')===payload.cognome &&
+          (x.email||'')===payload.email &&
+          (x.telefono||'')===payload.telefono &&
+          (x.def_nome||'')===payload.def_nome &&
+          (x.def_cognome||'')===payload.def_cognome &&
+          (x.def_data||'')===payload.def_data &&
+          (x.giorni_prima||'')===payload.giorni_prima &&
+          (x.oggetto||'')===payload.oggetto &&
+          (x.corpo||'')===payload.corpo
+        ) || null;
+      } catch { return null; }
+    }
 
-    // Torna alla dashboard
-    $('#btnBack').addEventListener('click', async () => {
-      if (dirty) await save();
+    // SALVA I DATI: se duplicato → chiedi sovrascrittura (PUT sul duplicato); altrimenti POST; poi reset per nuovo inserimento
+    $('#btnSave').addEventListener('click', async () => {
+      if (!validate()) { status.textContent = 'Correggi gli errori evidenziati.'; return; }
+      const payload = collect();
+
+      // cerca duplicato
+      const dup = await findDuplicate(payload);
+      try {
+        if (dup) {
+          const yes = confirm('Contatto duplicato. Vuoi procedere a sovrascrivere?');
+          if (!yes) { status.textContent = 'Operazione annullata.'; return; }
+          // sovrascrivi duplicato
+          await fetch(API + '/records/' + dup.id, {
+            method:'PUT', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+          });
+        } else if (rid) {
+          // aggiorna bozza esistente
+          await fetch(API + '/records/' + rid, {
+            method:'PUT', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+          });
+        } else {
+          // crea nuovo record
+          await fetch(API + '/records', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+          });
+        }
+        // reset per nuovo inserimento
+        document.querySelectorAll('input,textarea').forEach(el => {
+          if (el.type === 'date') el.value = '';
+          else el.value = '';
+        });
+        $('#tel_prefix').value = '+39';
+        // re-lock oggetto/corpo
+        $('#oggetto').disabled = true; $('#btnObj').textContent = 'Cambia oggetto';
+        $('#corpo').disabled = true; $('#btnBody').textContent = 'Cambia Messaggio';
+        rid = null; dirty = false;
+        status.textContent = 'Dati salvati. Pronto per un nuovo inserimento.';
+      } catch (e) {
+        status.textContent = 'Errore nel salvataggio.';
+        console.error(e);
+      }
+    });
+
+    // Torna alla home (salva se necessario)
+    $('#btnHome').addEventListener('click', async () => {
+      if (dirty) await savePUT();
       location.href = 'home.html';
     });
 
-    // Salva all’uscita della pagina
-    window.addEventListener('beforeunload', (e) => {
-      if (dirty) {
-        // Nota: le fetch async possono non completare su beforeunload.
-        // Teniamo un best-effort: invia una fetch senza attendere.
-        navigator.sendBeacon?.(API + '/records/' + rid, new Blob([JSON.stringify(collect())], {type:'application/json'}));
+    // Salvataggio all’uscita pagina (best-effort)
+    window.addEventListener('beforeunload', () => {
+      if (dirty && rid) {
+        const data = JSON.stringify(collect());
+        navigator.sendBeacon?.(API + '/records/' + rid, new Blob([data], {type:'application/json'}));
       }
     });
   </script>
 </body>
 </html>
+
