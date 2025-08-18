@@ -57,3 +57,136 @@
         <input type="text" placeholder="Nome modello (es. Damiano1)" id="subject-model-name">
         <button class="btn btn-primary" id="subject-confirm">Confermi</button>
       </div>
+    </div>
+
+    <!-- Corpo -->
+    <div class="card" id="card-body">
+      <label for="body">Corpo del messaggio</label>
+      <div class="row">
+        <textarea id="body" disabled></textarea>
+        <button class="btn btn-primary" id="btn-change-body">Cambia</button>
+      </div>
+      <div class="actions hidden" id="body-ask1">
+        <span>Vuoi richiamare un testo già inserito?</span>
+        <button class="btn" data-yes="#body-list" data-no="#body-ask2">SI</button>
+        <button class="btn" data-cancel>NO</button>
+      </div>
+      <div class="list hidden" id="body-list"></div>
+      <div class="actions hidden" id="body-ask2">
+        <span>Vuoi modificare questo testo?</span>
+        <button class="btn" data-edit="#body">SI</button>
+        <button class="btn" data-cancel>NO</button>
+      </div>
+      <div class="actions hidden" id="body-save-ask">
+        <span>Vuoi salvare questo testo?</span>
+        <button class="btn" data-save="body">SI</button>
+        <button class="btn" data-nosave="body">NO</button>
+      </div>
+      <div class="row hidden" id="body-save-name">
+        <input type="text" placeholder="Nome modello (es. Damiano1)" id="body-model-name">
+        <button class="btn btn-primary" id="body-confirm">Confermi</button>
+      </div>
+    </div>
+
+    <div class="actions">
+      <a class="btn" href="/home.html">← Torna alla Dashboard</a>
+      <span class="muted" id="api-used"></span>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = localStorage.getItem('API_BASE') || 'https://damiano-backend-ancz.onrender.com';
+    document.getElementById('api-used').textContent = `API: ${API_BASE}`;
+
+    const q = sel => document.querySelector(sel);
+    const show = el => (typeof el === 'string' ? q(el) : el).classList.remove('hidden');
+    const hide = el => (typeof el === 'string' ? q(el) : el).classList.add('hidden');
+
+    // Carica i valori attivi
+    async function loadSettings(){
+      const res = await fetch(`${API_BASE}/api/email/settings`);
+      const data = await res.json();
+      q('#subject').value = data.subject || '';
+      q('#body').value = data.body || '';
+    }
+
+    // Carica i modelli salvati
+    async function loadTemplates(type, containerSel){
+      const res = await fetch(`${API_BASE}/api/email/templates?type=${type}`);
+      const list = await res.json();
+      const box = q(containerSel);
+      box.innerHTML = '';
+      if(!list.length){ box.innerHTML = '<div class="item muted">Nessun modello salvato</div>'; return; }
+      list.forEach(t=>{
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `<b>${t.name}</b> <span class="badge">${type}</span><div class="muted">${(t.content||'').slice(0,120)}</div>`;
+        div.onclick = async () => {
+          if(type==='subject'){ q('#subject').value = t.content; await saveSettings({subject:t.content, subject_template_id:t.id}); }
+          else { q('#body').value = t.content; await saveSettings({body:t.content, body_template_id:t.id}); }
+          hide(containerSel); hide(`#${type}-ask1`);
+        };
+        box.appendChild(div);
+      });
+    }
+
+    // Salva i valori attivi
+    async function saveSettings(payload){
+      await fetch(`${API_BASE}/api/email/settings`, {
+        method:'PUT', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+    }
+
+    // Salva un modello
+    async function saveTemplate(type, name, content){
+      const res = await fetch(`${API_BASE}/api/email/templates`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({type, name, content})
+      });
+      return res.json();
+    }
+
+    // Subject
+    q('#btn-change-subject').onclick = ()=>{ show('#subject-ask1'); };
+    q('#subject-ask1 [data-yes]').onclick = ()=>{ loadTemplates('subject', '#subject-list'); show('#subject-list'); };
+    q('#subject-ask1 [data-no]').onclick = ()=>{ hide('#subject-ask1'); show('#subject-ask2'); };
+    q('#subject-ask2 [data-edit]').onclick = ()=>{ hide('#subject-ask2'); q('#subject').disabled=false; show('#subject-save-ask'); };
+    q('[data-save="subject"]').onclick = ()=>{ hide('#subject-save-ask'); show('#subject-save-name'); };
+    q('[data-nosave="subject"]').onclick = async ()=>{ hide('#subject-save-ask'); q('#subject').disabled=true; await saveSettings({subject:q('#subject').value, subject_template_id:null}); };
+    q('#subject-confirm').onclick = async ()=>{
+      const name = q('#subject-model-name').value.trim();
+      if(!name) return alert('Inserisci un nome');
+      const content = q('#subject').value;
+      const t = await saveTemplate('subject', name, content);
+      await saveSettings({subject:content, subject_template_id:t.id});
+      q('#subject').disabled=true; hide('#subject-save-name');
+      alert('Salvato');
+    };
+
+    // Body
+    q('#btn-change-body').onclick = ()=>{ show('#body-ask1'); };
+    q('#body-ask1 [data-yes]').onclick = ()=>{ loadTemplates('body', '#body-list'); show('#body-list'); };
+    q('#body-ask1 [data-no]').onclick = ()=>{ hide('#body-ask1'); show('#body-ask2'); };
+    q('#body-ask2 [data-edit]').onclick = ()=>{ hide('#body-ask2'); q('#body').disabled=false; show('#body-save-ask'); };
+    q('[data-save="body"]').onclick = ()=>{ hide('#body-save-ask'); show('#body-save-name'); };
+    q('[data-nosave="body"]').onclick = async ()=>{ hide('#body-save-ask'); q('#body').disabled=true; await saveSettings({body:q('#body').value, body_template_id:null}); };
+    q('#body-confirm').onclick = async ()=>{
+      const name = q('#body-model-name').value.trim();
+      if(!name) return alert('Inserisci un nome');
+      const content = q('#body').value;
+      const t = await saveTemplate('body', name, content);
+      await saveSettings({body:content, body_template_id:t.id});
+      q('#body').disabled=true; hide('#body-save-name');
+      alert('Salvato');
+    };
+
+    // Chiudi azioni se clicchi NO
+    document.querySelectorAll('[data-cancel]').forEach(btn=>{
+      btn.onclick = ()=>{ document.querySelectorAll('.actions,.list,.row').forEach(el=>el.classList.add('hidden')); };
+    });
+
+    loadSettings();
+  </script>
+</body>
+</html>
