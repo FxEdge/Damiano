@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dati Email – Dashboard</title>
+  <link rel="icon" href="assets/logo.svg">
+  <style>
+    :root{--bg:#f3f4f6;--surface:#fff;--text:#111827;--muted:#6b7280;--border:#e5e7eb;--primary:#2563eb}
+    body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto}
+    .container{max-width:980px;margin:32px auto;padding:0 16px}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 6px 18px rgba(0,0,0,.06);margin-bottom:16px}
+    label{display:block;font-weight:600;margin:10px 0 6px}
+    input[type="text"], textarea{width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;font:inherit}
+    textarea{min-height:170px;resize:vertical;white-space:pre-wrap}
+    .row{display:flex;gap:12px;align-items:center}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:#fff;cursor:pointer}
+    .btn-primary{background:linear-gradient(90deg,#2563eb,#2f5ef6);color:#fff;border:none}
+    .muted{color:var(--muted)}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .hidden{display:none}
+    .list{margin-top:10px;border:1px solid var(--border);border-radius:10px;max-height:220px;overflow:auto}
+    .item{padding:10px;border-bottom:1px solid var(--border);cursor:pointer}
+    .item:hover{background:#f7f7fb}
+    .badge{font-size:12px;padding:2px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;margin-left:6px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📧 Dati Email</h1>
+    <p class="muted">Gestisci oggetto e corpo standard delle comunicazioni. I valori qui sotto sono <b>attivi</b> e verranno usati dal sistema.</p>
+
+    <!-- Oggetto -->
+    <div class="card" id="card-subject">
+      <label for="subject">Oggetto della mail</label>
+      <div class="row">
+        <input id="subject" type="text" disabled />
+        <button class="btn btn-primary" id="btn-change-subject">Cambia</button>
+      </div>
+      <div class="actions hidden" id="subject-ask1">
+        <span>Vuoi richiamare un testo già inserito?</span>
+        <button class="btn" data-yes="#subject-list" data-no="#subject-ask2">SI</button>
+        <button class="btn" data-cancel>NO</button>
+      </div>
+      <div class="list hidden" id="subject-list"></div>
+      <div class="actions hidden" id="subject-ask2">
+        <span>Vuoi modificare questo testo?</span>
+        <button class="btn" data-edit="#subject">SI</button>
+        <button class="btn" data-cancel>NO</button>
+      </div>
+      <div class="actions hidden" id="subject-save-ask">
+        <span>Vuoi salvare questo testo?</span>
+        <button class="btn" data-save="subject">SI</button>
+        <button class="btn" data-nosave="subject">NO</button>
+      </div>
+      <div class="row hidden" id="subject-save-name">
+        <input type="text" placeholder="Nome modello (es. Damiano1)" id="subject-model-name">
+        <button class="btn btn-primary" id="subject-confirm">Confermi</button>
+      </div>
