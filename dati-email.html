@@ -156,30 +156,55 @@
       q('#body').value    = initialBody    = data.body || '';
     }
 
-    // Lista modelli
-    async function loadTemplates(type, containerSel){
-      const res = await fetch(`${API_BASE}/api/email/templates?type=${type}`);
-      const list = await res.json();
-      const box = q(containerSel);
-      box.innerHTML = '';
-      if(!list.length){ box.innerHTML = '<div class="item muted">Nessun modello salvato</div>'; return; }
+    // Lista modelli (CON LOG + header conteggio)
+async function loadTemplates(type, containerSel){
+  const url = `${API_BASE}/api/email/templates?type=${type}`;
+  console.log('[API] GET', url);                    // 👈 LOG
+  let list = [];
+  try{
+    const res = await fetch(url);
+    list = await res.json();
+  }catch(e){
+    console.error('[API] Errore fetch templates', e);
+  }
+  console.log('[API] Templates ricevuti:', type, list); // 👈 LOG
 
-      list.forEach(t=>{
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.innerHTML = `<b>${t.name}</b> <span class="badge">${type}</span><div class="muted">${(t.content||'').slice(0,160)}</div>`;
-        div.onclick = () => {
-          if(type==='subject'){
-            pickedSubject = { id: t.id, content: t.content };
-            show('#subject-use-ask');
-          } else {
-            pickedBody = { id: t.id, content: t.content };
-            show('#body-use-ask');
-          }
-        };
-        box.appendChild(div);
-      });
-    }
+  const box = q(containerSel);
+  box.innerHTML = '';  // pulisci
+
+  // header conteggio
+  const header = document.createElement('div');
+  header.className = 'muted';
+  header.style.marginBottom = '8px';
+  header.textContent = `Modelli trovati: ${list.length}`;
+  box.appendChild(header);
+
+  if(!list.length){
+    const empty = document.createElement('div');
+    empty.className = 'item muted';
+    empty.textContent = 'Nessun modello salvato';
+    box.appendChild(empty);
+    return;
+  }
+
+  list.forEach(t=>{
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `<b>${t.name}</b>
+                     <div class="muted" style="margin-top:4px">${(t.content||'').slice(0,160)}</div>`;
+    div.onclick = () => {
+      if(type==='subject'){
+        pickedSubject = { id: t.id, content: t.content, name: t.name };
+        show('#subject-use-ask');
+      } else {
+        pickedBody = { id: t.id, content: t.content, name: t.name };
+        show('#body-use-ask');
+      }
+    };
+    box.appendChild(div);
+  });
+}
+
 
     // Salva ATTIVI
     async function saveSettings(payload){
@@ -203,10 +228,13 @@
       hide('#subject-ask2'); hide('#subject-list'); hide('#subject-save-ask'); hide('#subject-save-name'); hide('#subject-use-ask');
       show('#subject-ask1');
     };
-    // SI → lista diretta
-    q('#subject-ask1 [data-yes]').onclick = () => { hide('#subject-ask1'); loadTemplates('subject', '#subject-list'); show('#subject-list'); };
-    // NO → domanda modifica
-    q('#subject-ask1 [data-no]').onclick  = () => { hide('#subject-ask1'); show('#subject-ask2'); };
+// SI → lista diretta (CON LOG)
+q('#subject-ask1 [data-yes]').onclick = () => {
+  console.log('[UI] Click su SI (subject)');  // 👈 LOG
+  hide('#subject-ask1');
+  loadTemplates('subject', '#subject-list'); // carica da API
+  show('#subject-list');
+};
 
     // Dopo scelta lista: "Usare questo testo?"
     q('#subject-use-yes').onclick = async () => {
