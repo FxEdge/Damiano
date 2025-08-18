@@ -165,7 +165,13 @@
       q('#subject').disabled=true; hide('#subject-save-name');
       alert('Salvato');
     };
-
+    
+<div class="actions hidden" id="subject-use-ask">
+  <span>Vuoi usare questo testo per le mail?</span>
+  <button class="btn" id="subject-use-yes">SI</button>
+  <button class="btn" id="subject-use-no">NO</button>
+</div>
+    
     // Body
     q('#btn-change-body').onclick = ()=>{ show('#body-ask1'); };
     q('#body-ask1 [data-yes]').onclick = ()=>{ loadTemplates('body', '#body-list'); show('#body-list'); };
@@ -182,7 +188,13 @@
       q('#body').disabled=true; hide('#body-save-name');
       alert('Salvato');
     };
-
+    
+  <div class="actions hidden" id="body-use-ask">
+  <span>Vuoi usare questo testo per le mail?</span>
+  <button class="btn" id="body-use-yes">SI</button>
+  <button class="btn" id="body-use-no">NO</button>
+  </div>
+    
     // Chiudi azioni se clicchi NO
     document.querySelectorAll('[data-cancel]').forEach(btn=>{
       btn.onclick = ()=>{ document.querySelectorAll('.actions,.list,.row').forEach(el=>el.classList.add('hidden')); };
