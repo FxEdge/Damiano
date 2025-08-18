@@ -32,6 +32,17 @@
 }
     .item{padding:10px;border-bottom:1px solid var(--border);cursor:pointer}
     .item:hover{background:#f7f7fb}
+    .item { position: relative; }
+.item .item-del {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  cursor: pointer;
+  opacity: .7;
+}
+.item .item-del:hover {
+  opacity: 1;
+}
     .badge{font-size:12px;padding:2px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;margin-left:6px}
     .footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
   </style>
@@ -241,7 +252,6 @@ list.forEach(t=>{
 });
 
 }
-
 
     // Salva ATTIVI
     async function saveSettings(payload){
