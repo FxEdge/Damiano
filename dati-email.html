@@ -37,17 +37,19 @@
         <input id="subject" type="text" disabled />
         <button class="btn btn-primary" id="btn-change-subject">Cambia</button>
       </div>
-      <div class="actions hidden" id="subject-ask1">
-        <span>Vuoi richiamare un testo già inserito?</span>
-        <button class="btn" data-yes="#subject-list" data-no="#subject-ask2">SI</button>
-        <button class="btn" data-cancel>NO</button>
-      </div>
-      <div class="list hidden" id="subject-list"></div>
+     <div class="list hidden" id="subject-list"></div>
       <div class="actions hidden" id="subject-ask2">
         <span>Vuoi modificare questo testo?</span>
         <button class="btn" data-edit="#subject">SI</button>
         <button class="btn" data-cancel>NO</button>
       </div>
+    
+      <div class="actions hidden" id="subject-ask1">
+        <span>Vuoi richiamare un testo già inserito?</span>
+        <button class="btn" data-yes="#subject-list" data-no="#subject-ask2">SI</button>
+        <button class="btn" data-cancel>NO</button>
+      </div>
+     
       <div class="actions hidden" id="subject-save-ask">
         <span>Vuoi salvare questo testo?</span>
         <button class="btn" data-save="subject">SI</button>
