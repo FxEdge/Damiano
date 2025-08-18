@@ -202,5 +202,185 @@
 
     loadSettings();
   </script>
+  const API_BASE = localStorage.getItem('API_BASE') || 'https://damiano-backend-ancz.onrender.com';
+document.getElementById('api-used').textContent = `API: ${API_BASE}`;
+
+const q = sel => document.querySelector(sel);
+const show = el => (typeof el === 'string' ? q(el) : el).classList.remove('hidden');
+const hide = el => (typeof el === 'string' ? q(el) : el).classList.add('hidden');
+
+// 🔹 valori iniziali all'apertura
+let initialSubject = '';
+let initialBody = '';
+// 🔹 temporanei scelti dalla lista
+let pickedSubject = { id: null, content: '' };
+let pickedBody = { id: null, content: '' };
+
+// Carica ATTIVI
+async function loadSettings(){
+  const res = await fetch(`${API_BASE}/api/email/settings`);
+  const data = await res.json();
+  q('#subject').value = initialSubject = data.subject || '';
+  q('#body').value    = initialBody    = data.body || '';
+}
+
+// Lista modelli
+async function loadTemplates(type, containerSel){
+  const res = await fetch(`${API_BASE}/api/email/templates?type=${type}`);
+  const list = await res.json();
+  const box = q(containerSel);
+  box.innerHTML = '';
+  if(!list.length){ box.innerHTML = '<div class="item muted">Nessun modello salvato</div>'; return; }
+
+  list.forEach(t=>{
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `<b>${t.name}</b> <span class="badge">${type}</span><div class="muted">${(t.content||'').slice(0,160)}</div>`;
+    div.onclick = () => {
+      // memorizza il modello selezionato e mostra "Usare questo testo?"
+      if(type==='subject'){
+        pickedSubject = { id: t.id, content: t.content };
+        show('#subject-use-ask');
+      } else {
+        pickedBody = { id: t.id, content: t.content };
+        show('#body-use-ask');
+      }
+    };
+    box.appendChild(div);
+  });
+}
+
+// Salva ATTIVI
+async function saveSettings(payload){
+  await fetch(`${API_BASE}/api/email/settings`, {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  });
+}
+
+// Salva modello
+async function saveTemplate(type, name, content){
+  const res = await fetch(`${API_BASE}/api/email/templates`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({type, name, content})
+  });
+  return res.json();
+}
+
+/* ===== SUBJECT ===== */
+q('#btn-change-subject').onclick = () => {
+  hide('#subject-ask2'); hide('#subject-list'); hide('#subject-save-ask'); hide('#subject-save-name'); hide('#subject-use-ask');
+  show('#subject-ask1');
+};
+// SI → mostra direttamente la lista
+q('#subject-ask1 [data-yes]').onclick = () => { hide('#subject-ask1'); loadTemplates('subject', '#subject-list'); show('#subject-list'); };
+// NO → “Vuoi modificare…?”
+q('#subject-ask1 [data-no]').onclick  = () => { hide('#subject-ask1'); show('#subject-ask2'); };
+
+// ► Dopo scelta dalla lista: "Usare questo testo?"
+q('#subject-use-yes').onclick = async () => {
+  // usa il testo selezionato
+  q('#subject').value = pickedSubject.content;
+  await saveSettings({ subject: pickedSubject.content, subject_template_id: pickedSubject.id });
+  // pulizia UI
+  hide('#subject-use-ask'); hide('#subject-list');
+  alert('Impostato come testo attivo.');
+};
+
+q('#subject-use-no').onclick = () => {
+  // non usarlo → chiedi se vuoi modificare questo testo
+  hide('#subject-use-ask');
+  show('#subject-ask2');
+};
+
+q('#subject-ask2 [data-edit]').onclick = () => {
+  // abilita modifica (parte dal valore corrente nel campo)
+  q('#subject').disabled = false;
+  hide('#subject-ask2');
+  show('#subject-save-ask');
+};
+
+// Salvataggio SI/NO dalla modifica manuale
+q('[data-save="subject"]').onclick = () => { hide('#subject-save-ask'); show('#subject-save-name'); };
+q('[data-nosave="subject"]').onclick = async () => {
+  // NO: ripristina il testo di apertura pagina
+  q('#subject').value   = initialSubject;
+  q('#subject').disabled = true;
+  await saveSettings({ subject: initialSubject, subject_template_id: null });
+  hide('#subject-save-ask'); hide('#subject-ask2');
+};
+
+q('#subject-confirm').onclick = async () => {
+  const name = q('#subject-model-name').value.trim();
+  if(!name) return alert('Inserisci un nome');
+  const content = q('#subject').value;
+  const t = await saveTemplate('subject', name, content);
+  await saveSettings({ subject: content, subject_template_id: t.id });
+  q('#subject').disabled = true; hide('#subject-save-name');
+  alert('Salvato e impostato come attivo.');
+};
+
+/* ===== BODY ===== */
+q('#btn-change-body').onclick = () => {
+  hide('#body-ask2'); hide('#body-list'); hide('#body-save-ask'); hide('#body-save-name'); hide('#body-use-ask');
+  show('#body-ask1');
+};
+
+q('#body-ask1 [data-yes]').onclick = () => { hide('#body-ask1'); loadTemplates('body', '#body-list'); show('#body-list'); };
+q('#body-ask1 [data-no]').onclick  = () => { hide('#body-ask1'); show('#body-ask2'); };
+
+q('#body-use-yes').onclick = async () => {
+  q('#body').value = pickedBody.content;
+  await saveSettings({ body: pickedBody.content, body_template_id: pickedBody.id });
+  hide('#body-use-ask'); hide('#body-list');
+  alert('Impostato come testo attivo.');
+};
+
+q('#body-use-no').onclick = () => {
+  hide('#body-use-ask');
+  show('#body-ask2');
+};
+
+q('#body-ask2 [data-edit]').onclick = () => {
+  q('#body').disabled = false;
+  hide('#body-ask2');
+  show('#body-save-ask');
+};
+
+q('[data-save="body"]').onclick = () => { hide('#body-save-ask'); show('#body-save-name'); };
+q('[data-nosave="body"]').onclick = async () => {
+  q('#body').value    = initialBody;
+  q('#body').disabled = true;
+  await saveSettings({ body: initialBody, body_template_id: null });
+  hide('#body-save-ask'); hide('#body-ask2');
+};
+
+q('#body-confirm').onclick = async () => {
+  const name = q('#body-model-name').value.trim();
+  if(!name) return alert('Inserisci un nome');
+  const content = q('#body').value;
+  const t = await saveTemplate('body', name, content);
+  await saveSettings({ body: content, body_template_id: t.id });
+  q('#body').disabled = true; hide('#body-save-name');
+  alert('Salvato e impostato come attivo.');
+};
+
+// Chiudi/annulla generico (NO dei primi prompt)
+document.querySelectorAll('[data-cancel]').forEach(btn=>{
+  btn.onclick = () => {
+    ['#subject-ask1','#subject-ask2','#subject-list','#subject-use-ask','#subject-save-ask','#subject-save-name',
+     '#body-ask1','#body-ask2','#body-list','#body-use-ask','#body-save-ask','#body-save-name'
+    ].forEach(hide);
+    // ripristina i valori di apertura
+    q('#subject').value = initialSubject;
+    q('#body').value = initialBody;
+    q('#subject').disabled = true;
+    q('#body').disabled = true;
+  };
+});
+
+loadSettings();
+
+   </script>
 </body>
 </html>
