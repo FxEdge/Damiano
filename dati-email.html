@@ -235,6 +235,12 @@ q('#subject-ask1 [data-yes]').onclick = () => {
   loadTemplates('subject', '#subject-list'); // carica da API
   show('#subject-list');
 };
+// NO → passa alla domanda "Vuoi modificare questo testo?"
+q('#subject-ask1 [data-no]').onclick = () => {
+  console.log('[UI] Click su NO (subject)');
+  hide('#subject-ask1');
+  show('#subject-ask2');
+};
 
     // Dopo scelta lista: "Usare questo testo?"
     q('#subject-use-yes').onclick = async () => {
