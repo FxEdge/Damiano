@@ -187,22 +187,59 @@ async function loadTemplates(type, containerSel){
     return;
   }
 
-  list.forEach(t=>{
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.innerHTML = `<b>${t.name}</b>
-                     <div class="muted" style="margin-top:4px">${(t.content||'').slice(0,160)}</div>`;
-    div.onclick = () => {
-      if(type==='subject'){
-        pickedSubject = { id: t.id, content: t.content, name: t.name };
-        show('#subject-use-ask');
-      } else {
-        pickedBody = { id: t.id, content: t.content, name: t.name };
-        show('#body-use-ask');
-      }
-    };
-    box.appendChild(div);
-  });
+list.forEach(t=>{
+  const div = document.createElement('div');
+  div.className = 'item';
+  div.innerHTML = `
+    <b>${t.name}</b>
+    <div class="muted" style="margin-top:4px">${(t.content||'').slice(0,160)}</div>
+    <span class="item-del" title="Elimina">🗑️</span>
+  `;
+
+  // CLICK singolo → flusso attuale: chiedi “Usare questo testo?”
+  div.onclick = (e) => {
+    if (e.target.closest('.item-del')) return; // non interferire col cestino
+    if(type==='subject'){
+      pickedSubject = { id: t.id, content: t.content, name: t.name };
+      show('#subject-use-ask');
+    } else {
+      pickedBody = { id: t.id, content: t.content, name: t.name };
+      show('#body-use-ask');
+    }
+  };
+
+  // DOPPIO CLICK → inserisci subito il testo e vai a “Vuoi modificare questo testo?”
+  div.ondblclick = (e) => {
+    if (e.target.closest('.item-del')) return;
+    if (type === 'subject') {
+      q('#subject').value = t.content;           // metti il testo
+      hide('#subject-list');                     // chiudi lista
+      hide('#subject-use-ask');                  // non serve il passo “Usare?”
+      show('#subject-ask2');                     // chiedi direttamente se vuoi modificare
+    } else {
+      q('#body').value = t.content;
+      hide('#body-list');
+      hide('#body-use-ask');
+      show('#body-ask2');
+    }
+  };
+
+  // Cestino (vedi punto 2 sotto)
+  div.querySelector('.item-del').onclick = async (e) => {
+    e.stopPropagation();
+    if (!confirm(`Eliminare il modello "${t.name}"?`)) return;
+    try {
+      await fetch(`${API_BASE}/api/email/templates/${t.id}?type=${type}`, { method: 'DELETE' });
+      // ricarica lista
+      loadTemplates(type, containerSel);
+    } catch(err){
+      alert('Errore durante l’eliminazione');
+    }
+  };
+
+  box.appendChild(div);
+});
+
 }
 
 
