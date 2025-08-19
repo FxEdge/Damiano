@@ -115,8 +115,8 @@
       rows.forEach(r=>{
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${r.nome || ''}</td>
           <td>${r.cognome || ''}</td>
+          <td>${r.nome || ''}</td>
           <td>${r.email || ''}</td>
           <td>${(r.telefono_prefisso||'') + (r.telefono_numero? ' '+r.telefono_numero : '')}</td>
           <td>${[r.def_nome||'', r.def_cognome||''].filter(Boolean).join(' ')}</td>
