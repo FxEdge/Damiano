@@ -3,72 +3,119 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ricerca – Damiano</title>
+  <title>Ricerca inserimenti</title>
   <link rel="icon" href="assets/logo.svg">
   <style>
-    body{margin:0;background:#f3f4f6;font-family:system-ui}
-    .wrap{width:min(900px,92%);margin:auto;padding:20px}
-    .card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px}
-    input{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px}
-    .list{margin-top:10px}
-    .item{padding:10px;border-bottom:1px solid #e5e7eb;cursor:pointer}
-    .muted{color:#6b7280}
+    :root{--bg:#f3f4f6;--surface:#fff;--text:#111827;--muted:#6b7280;--border:#e5e7eb;--primary:#2563eb}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto}
+    .wrap{width:min(1100px,92%);margin-inline:auto;padding:20px}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.06);padding:16px}
+    h1{margin:0 0 8px}
+    .muted{color:var(--muted)}
+    .toolbar{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .input{padding:10px;border:1px solid var(--border);border-radius:10px;font:inherit;background:#fff;width:280px}
+    .table-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px;background:#fff}
+    table{width:100%;border-collapse:collapse}
+    thead tr{background:#f9fafb}
+    th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left}
+    tr:hover td{background:#fafafa}
+    .btn{display:inline-block;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;cursor:pointer}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>Ricerca</h1>
-    <p class="muted">Digita nome/cognome/email per filtrare.</p>
+    <header>
+      <h1>Ricerca inserimenti</h1>
+      <a class="btn" href="home.html">← Torna alla Dashboard</a>
+    </header>
+
     <section class="card">
-      <input id="q" placeholder="Cerca..." autofocus/>
-      <div id="list" class="list"></div>
+      <div class="toolbar">
+        <p class="muted" style="margin:0">Doppio click su una riga per modificare.</p>
+        <input id="q" class="input" type="text" placeholder="Cerca per nome, cognome o email…">
+      </div>
+
+      <div class="table-wrap">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Cognome</th>
+              <th>Email</th>
+              <th>Telefono</th>
+              <th>Defunto</th>
+            </tr>
+          </thead>
+          <tbody><!-- rows --></tbody>
+        </table>
+      </div>
     </section>
+
+    <p class="muted" style="margin-top:10px">API: <code id="apiInUso"></code></p>
   </div>
 
   <script>
-    if (!localStorage.getItem('damiano_token')) location.replace('index.html');
+    // ===== Guard auth =====
+    if (!localStorage.getItem('damiano_token')) { location.replace('index.html'); }
 
+    // ===== API base =====
     const DEFAULT_API = 'https://damiano-backend-ancz.onrender.com';
     const API = localStorage.getItem('damiano_api') || DEFAULT_API;
+    document.getElementById('apiInUso').textContent = API;
 
-    const params = new URLSearchParams(location.search);
-    const mode = params.get('mode') || 'view'; // edit | view
-
+    // ===== Helpers =====
     const $ = s => document.querySelector(s);
-    const list = $('#list');
-    const q = $('#q');
-    let records = [];
+    const $$ = s => Array.from(document.querySelectorAll(s));
+
+    let all = [];
 
     async function load() {
-      const r = await fetch(API + '/records');
-      const d = await r.json();
-      records = d.records || [];
-      render();
+      try {
+        const res = await fetch(`${API}/records`);
+        all = await res.json();
+        render(all);
+      } catch (e) {
+        alert('Errore nel caricamento degli inserimenti');
+      }
     }
 
-    function render() {
-      const term = q.value.toLowerCase().trim();
-      list.innerHTML = '';
-      records
-        .filter(r =>
-          !term ||
-          (r.nome||'').toLowerCase().includes(term) ||
-          (r.cognome||'').toLowerCase().includes(term) ||
-          (r.email||'').toLowerCase().includes(term)
-        )
-        .forEach(r => {
-          const div = document.createElement('div');
-          div.className = 'item';
-          div.textContent = `${r.nome||''} ${r.cognome||''} — ${r.email||''}`;
-          div.addEventListener('click', () => {
-            location.href = `detail.html?id=${encodeURIComponent(r.id)}&mode=${mode}`;
-          });
-          list.appendChild(div);
-        });
+    function render(rows) {
+      const tb = $('#tbl tbody');
+      tb.innerHTML = '';
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${r.nome || ''}</td>
+          <td>${r.cognome || ''}</td>
+          <td>${r.email || ''}</td>
+          <td>${(r.telefono_prefisso||'') + (r.telefono_numero? ' '+r.telefono_numero : '')}</td>
+          <td>${[r.def_nome||'', r.def_cognome||''].filter(Boolean).join(' ')}</td>
+        `;
+        tr.ondblclick = () => {
+          if (confirm('Vuoi modificare questo contatto?')) {
+            location.href = `dettagli.html?id=${encodeURIComponent(r.id)}&mode=edit&from=search`;
+          }
+        };
+        tb.appendChild(tr);
+      });
     }
 
-    q.addEventListener('input', render);
+    // filtro live
+    $('#q').addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      if (!q) return render(all);
+      const filt = all.filter(r =>
+        (r.nome||'').toLowerCase().includes(q) ||
+        (r.cognome||'').toLowerCase().includes(q) ||
+        (r.email||'').toLowerCase().includes(q)
+      );
+      render(filt);
+    });
+
     load();
   </script>
 </body>
 </html>
+
