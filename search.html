@@ -95,7 +95,7 @@
         `;
         tr.ondblclick = () => {
           if (confirm('Vuoi modificare questo contatto?')) {
-            location.href = `dettagli.html?id=${encodeURIComponent(r.id)}&mode=edit&from=search`;
+            location.href = `/dettagli.html?id=${encodeURIComponent(r.id)}&mode=edit&from=search`;
           }
         };
         tb.appendChild(tr);
