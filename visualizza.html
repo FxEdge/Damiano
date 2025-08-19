@@ -39,6 +39,7 @@
         <div class="right">
           <input id="q" class="input" type="text" placeholder="Cerca per nome, cognome o email…">
           <span id="count" class="pill">0 elementi</span>
+          <button id="btnExport" class="btn">📂 Esporta CSV</button>
         </div>
       </div>
 
@@ -139,7 +140,56 @@
       render(filt);
     });
 
+    // ==== Export CSV ====
+    function exportCSV(rows) {
+      const headers = [
+        "Nome","Cognome","Email","Telefono","Defunto","Data","Giorni prima"
+      ];
+      const lines = [headers.join(",")];
+
+      rows.forEach(r=>{
+        const telefono = (r.telefono_prefisso||"") + (r.telefono_numero ? " "+r.telefono_numero : "");
+        const defunto = [r.def_nome||"", r.def_cognome||""].filter(Boolean).join(" ");
+        const vals = [
+          r.nome||"", r.cognome||"", r.email||"", telefono, defunto, r.def_data||"", (r.giorni_prima??"")
+        ];
+        lines.push(vals.map(v=> `"${String(v).replace(/"/g,'""')}"`).join(","));
+      });
+
+      const blob = new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8;"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "inserimenti.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // click export → scarica solo i dati correnti (filtrati)
+    document.getElementById('btnExport').addEventListener('click', ()=>{
+      // usa direttamente l'array filtrato attuale dalla tabella
+      const trs = document.querySelectorAll('#tbl tbody tr');
+      const rows = Array.from(trs).map(tr=>{
+        const tds = tr.querySelectorAll('td');
+        return {
+          nome: tds[0].textContent,
+          cognome: tds[1].textContent,
+          email: tds[2].textContent,
+          telefono_prefisso: "",
+          telefono_numero: tds[3].textContent,
+          def_nome: "",
+          def_cognome: "",
+          def_data: tds[5].textContent,
+          giorni_prima: tds[6].textContent
+        };
+      });
+      exportCSV(rows);
+    });
+
     load();
   </script>
 </body>
 </html>
+
