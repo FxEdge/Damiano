@@ -7,8 +7,7 @@
   <link rel="icon" href="assets/logo.svg">
   <style>
     :root{--bg:#f3f4f6;--surface:#fff;--text:#111827;--muted:#6b7280;--border:#e5e7eb;--shadow:0 6px 18px rgba(0,0,0,.06);--primary:#2563eb}
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial}
     .wrap{width:min(1100px,92%);margin-inline:auto;padding:20px}
     header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
     .brand{display:flex;align-items:center;gap:10px}
@@ -23,26 +22,10 @@
     .report{display:grid;gap:8px}
     .report .box{border:1px dashed var(--border);border-radius:12px;padding:10px}
 
-    /* === Bottoni sezione dati in colonna === */
+    /* === NUOVO: metti i tre bottoni in colonna e a tutta larghezza === */
     .actions-stack{display:flex;flex-direction:column;gap:12px;margin-top:8px}
     .actions-stack .btn-primary{width:100%;text-align:left}
     .actions-stack .btn-primary:hover{filter:brightness(0.95)}
-
-    /* === Tabella inserimenti === */
-    .table-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px;background:#fff}
-    table{width:100%;border-collapse:collapse}
-    thead tr{background:#f9fafb}
-    th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
-    tr:hover td{background:#fafafa}
-    .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px}
-    .input{padding:8px 10px;border:1px solid var(--border);border-radius:10px;font:inherit;background:#fff}
-
-    /* === Modale modifica === */
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999}
-    .modal-body{background:#fff;width:min(780px,95vw);max-height:90vh;overflow:auto;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
-    .modal-header{padding:14px 18px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
-    .modal-content{padding:16px 18px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .hidden{display:none}
   </style>
 </head>
 <body>
@@ -64,127 +47,34 @@
         <h2>Sezione Dati</h2>
         <p class="muted">Gestisci le schede clienti.</p>
 
-        <!-- (lasciata intatta) -->
+        <!-- SOLO QUESTO BLOCCO È CAMBIATO -->
         <div class="actions-stack">
           <a href="new.html" class="btn btn-primary">➕ Nuovo inserimento</a>
           <a href="search.html?mode=edit" class="btn btn-primary">✏️ Modifica inserimento</a>
           <a href="search.html?mode=view" class="btn btn-primary">👁️ Visualizzazione inserimento</a>
         </div>
       </section>
+       <!-- ✅ NUOVA CARD -->
+  <section class="card">
+    <h2>Sezione Config</h2>
+    <p>Impostazioni dei testi email.</p>
+    <a class="btn btn-primary" href="/dati-email.html">📧 Dati Email</a>
+  </section>
+      
+          <!-- Sezione Report -->
+<section class="card">
+  <h2>Sezione Report</h2>
+  <p class="muted">Statistiche e analisi.</p>
+  <div class="report">
+    <a href="report1.html" class="btn btn-primary">📧 Mail inviate mese</a>
+    <a href="report2.html" class="btn">📆 Da inviare mese prossimo</a>
+    <a href="report3.html" class="btn">📈 Report 3</a>
+  </div>
+</section>
 
-      <!-- Sezione Config (tua, invariata) -->
-      <section class="card">
-        <h2>Sezione Config</h2>
-        <p>Impostazioni dei testi email.</p>
-        <a class="btn btn-primary" href="/dati-email.html">📧 Dati Email</a>
-      </section>
-
-      <!-- ✅ NUOVA CARD: Inserimenti con Modifica -->
-      <section class="card" style="grid-column:1 / -1">
-        <h2>Inserimenti</h2>
-        <div class="toolbar">
-          <p class="muted" style="margin:0">Elenco inserimenti salvati. Cerca e modifica rapidamente.</p>
-          <input id="rec-search" class="input" type="text" placeholder="Cerca nome/cognome/email…">
-        </div>
-
-        <div class="table-wrap">
-          <table id="rec-table">
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Cognome</th>
-                <th>Email</th>
-                <th>Telefono</th>
-                <th>Defunto</th>
-                <th style="width:160px">Azioni</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- Sezione Report (tua, invariata) -->
-      <section class="card">
-        <h2>Sezione Report</h2>
-        <p class="muted">Statistiche e analisi.</p>
-        <div class="report">
-          <a href="report1.html" class="btn btn-primary">📧 Mail inviate mese</a>
-          <a href="report2.html" class="btn">📆 Da inviare mese prossimo</a>
-          <a href="report3.html" class="btn">📈 Report 3</a>
-        </div>
-      </section>
     </div>
 
     <p class="muted" style="margin-top:14px">API: <code id="apiInUso"></code></p>
-  </div>
-
-  <!-- 🔧 Modale Modifica Inserimento -->
-  <div id="edit-modal" class="modal hidden">
-    <div class="modal-body">
-      <div class="modal-header">
-        <strong>Modifica inserimento</strong>
-        <button id="edit-close" class="btn" style="border:none;background:transparent;font-size:20px">✕</button>
-      </div>
-      <form id="edit-form" class="modal-content">
-        <input type="hidden" id="edit-id">
-
-        <div>
-          <label>Nome</label>
-          <input type="text" id="edit-nome" class="input">
-        </div>
-        <div>
-          <label>Cognome</label>
-          <input type="text" id="edit-cognome" class="input">
-        </div>
-
-        <div>
-          <label>Email</label>
-          <input type="text" id="edit-email" class="input">
-        </div>
-        <div>
-          <label>Telefono (prefisso)</label>
-          <input type="text" id="edit-prefisso" class="input" value="+39">
-        </div>
-
-        <div>
-          <label>Telefono (numero)</label>
-          <input type="text" id="edit-telefono" class="input">
-        </div>
-        <div>
-          <label>Giorni prima (promemoria)</label>
-          <input type="number" id="edit-giorni" class="input" min="0">
-        </div>
-
-        <div>
-          <label>Defunto – Nome</label>
-          <input type="text" id="edit-def-nome" class="input">
-        </div>
-        <div>
-          <label>Defunto – Cognome</label>
-          <input type="text" id="edit-def-cognome" class="input">
-        </div>
-
-        <div>
-          <label>Defunto – Data</label>
-          <input type="date" id="edit-def-data" class="input">
-        </div>
-        <div>
-          <label>Oggetto email</label>
-          <input type="text" id="edit-oggetto" class="input">
-        </div>
-
-        <div style="grid-column:1 / -1">
-          <label>Corpo email</label>
-          <textarea id="edit-corpo" class="input" style="min-height:140px"></textarea>
-        </div>
-
-        <div style="grid-column:1 / -1;display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
-          <button type="button" id="edit-cancel" class="btn">Annulla</button>
-          <button type="submit" class="btn btn-primary">💾 Salva modifiche</button>
-        </div>
-      </form>
-    </div>
   </div>
 
   <script>
@@ -194,149 +84,32 @@
     const DEFAULT_API = 'https://damiano-backend-ancz.onrender.com';
     const API = localStorage.getItem('damiano_api') || DEFAULT_API;
 
-    document.getElementById('today').textContent =
-      new Date().toLocaleString('it-IT', {dateStyle:'full', timeStyle:'short'});
+    document.getElementById('today').textContent = new Date().toLocaleString('it-IT', {dateStyle:'full', timeStyle:'short'});
     document.getElementById('apiInUso').textContent = API;
 
-    // Logout (invariato)
+    // Logout
     document.getElementById('btnLogout').addEventListener('click', () => {
       localStorage.removeItem('damiano_token');
       localStorage.removeItem('damiano_user');
       location.replace('index.html');
     });
 
-    // ======= Nuova logica Inserimenti =======
-    const $ = s => document.querySelector(s);
-    const $$ = s => Array.from(document.querySelectorAll(s));
-    const show = el => (typeof el==='string' ? $(el) : el).classList.remove('hidden');
-    const hide = el => (typeof el==='string' ? $(el) : el).classList.add('hidden');
-
-    let allRecords = [];
-
-    async function fetchRecords(){
-      try{
-        const res = await fetch(`${API}/records`);
-        allRecords = await res.json();
-        renderTable(allRecords);
-      }catch(e){
-        console.error('Errore caricamento records', e);
-      }
-    }
-
-    function renderTable(rows){
-      const tbody = $('#rec-table tbody');
-      tbody.innerHTML = '';
-      rows.forEach(r => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${r.nome || ''}</td>
-          <td>${r.cognome || ''}</td>
-          <td>${r.email || ''}</td>
-          <td>${(r.telefono_prefisso||'') + (r.telefono_numero ? ' ' + r.telefono_numero : '')}</td>
-          <td>${[r.def_nome||'', r.def_cognome||''].filter(Boolean).join(' ')}</td>
-          <td>
-            <button class="btn" data-edit="${r.id}">✏️ Modifica</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      // bind Modifica
-      $$('#rec-table [data-edit]').forEach(btn=>{
-        btn.onclick = () => openEdit(btn.getAttribute('data-edit'));
-      });
-    }
-
-    function openEdit(id){
-      const r = allRecords.find(x => x.id === id);
-      if(!r) return;
-
-      $('#edit-id').value = r.id;
-      $('#edit-nome').value = r.nome || '';
-      $('#edit-cognome').value = r.cognome || '';
-      $('#edit-email').value = r.email || '';
-      $('#edit-prefisso').value = r.telefono_prefisso || '+39';
-      $('#edit-telefono').value = r.telefono_numero || '';
-      $('#edit-giorni').value = (r.giorni_prima ?? '') === null ? '' : (r.giorni_prima ?? '');
-      $('#edit-def-nome').value = r.def_nome || '';
-      $('#edit-def-cognome').value = r.def_cognome || '';
-      $('#edit-def-data').value = r.def_data || '';
-      $('#edit-oggetto').value = r.oggetto || '';
-      $('#edit-corpo').value = r.corpo || '';
-
-      show('#edit-modal');
-    }
-
-    function closeEdit(){
-      hide('#edit-modal');
-      $('#edit-form').reset();
-      $('#edit-id').value = '';
-    }
-
-    // Cerca
-    $('#rec-search').addEventListener('input', e=>{
-      const q = e.target.value.trim().toLowerCase();
-      if(!q) return renderTable(allRecords);
-      const filt = allRecords.filter(r =>
-        (r.nome||'').toLowerCase().includes(q) ||
-        (r.cognome||'').toLowerCase().includes(q) ||
-        (r.email||'').toLowerCase().includes(q)
-      );
-      renderTable(filt);
-    });
-
-    // Chiudi modale
-    $('#edit-close').onclick = closeEdit;
-    $('#edit-cancel').onclick = closeEdit;
-
-    // Salva modifiche
-    $('#edit-form').onsubmit = async (e) => {
-      e.preventDefault();
-      const id = $('#edit-id').value;
-      const payload = {
-        id,
-        nome: $('#edit-nome').value.trim(),
-        cognome: $('#edit-cognome').value.trim(),
-        email: $('#edit-email').value.trim() || null,
-        telefono_prefisso: $('#edit-prefisso').value.trim() || '+39',
-        telefono_numero: $('#edit-telefono').value.trim() || null,
-        giorni_prima: $('#edit-giorni').value ? Number($('#edit-giorni').value) : null,
-        def_nome: $('#edit-def-nome').value.trim() || null,
-        def_cognome: $('#edit-def-cognome').value.trim() || null,
-        def_data: $('#edit-def-data').value || null,
-        oggetto: $('#edit-oggetto').value || null,
-        corpo: $('#edit-corpo').value || null,
-      };
-
-      try{
-        const res = await fetch(`${API}/records/${encodeURIComponent(id)}`, {
-          method: 'PUT',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify(payload)
-        });
-        if(!res.ok){
-          const err = await res.json().catch(()=>({}));
-          alert('Errore salvataggio: ' + (err.detail || res.status));
-          return;
-        }
-        closeEdit();
-        await fetchRecords();
-        alert('Modifica salvata ✅');
-      }catch(e){
-        alert('Errore di rete durante il salvataggio');
-      }
-    };
-
-    // Stub report (tuo codice: lasciato intatto, ma gli ID rep1/rep2/rep3 non esistono in DOM)
-    // document.getElementById('rep1').textContent = '0';
-    // document.getElementById('rep2').textContent = '0';
-    // document.getElementById('rep3').textContent = '—';
-
-    // Avvio
-    fetchRecords();
+    // Stub report
+    document.getElementById('rep1').textContent = '0';
+    document.getElementById('rep2').textContent = '0';
+    document.getElementById('rep3').textContent = '—';
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
 
 
 
