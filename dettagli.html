@@ -97,16 +97,138 @@
   </div>
 
   <script>
-    // ===== Guard auth =====
-    if (!localStorage.getItem('damiano_token')) { location.replace('index.html'); }
+document.addEventListener('DOMContentLoaded', () => {
+  // ===== Guard auth =====
+  if (!localStorage.getItem('damiano_token')) { location.replace('index.html'); return; }
 
-    // ===== API base =====
-    const DEFAULT_API = 'https://damiano-backend-ancz.onrender.com';
-    const API = localStorage.getItem('damiano_api') || DEFAULT_API;
-    document.getElementById('apiInUso').textContent = API;
+  // ===== API base =====
+  const DEFAULT_API = 'https://damiano-backend-ancz.onrender.com';
+  const API = localStorage.getItem('damiano_api') || DEFAULT_API;
+  const apiEl = document.getElementById('apiInUso');
+  if (apiEl) apiEl.textContent = API;
 
-    // ===== Helpers =====
-    const $ = s => document.querySelector(s);
-    const params = new URLSearchParams(location.search);
-    const rid = params.get('id');
-    const from = params.get('from'); //
+  // ===== Helpers =====
+  const $ = s => document.querySelector(s);
+  const params = new URLSearchParams(location.search);
+  const rid   = params.get('id');
+  const from  = params.get('from'); // "search" se arrivi dalla tabella
+
+  function goBack() {
+    // Se arrivo da una pagina del TUO sito, uso history.back per mantenere il filtro ricerca
+    try {
+      const ref = document.referrer ? new URL(document.referrer) : null;
+      if (ref && ref.origin === location.origin) {
+        history.back();
+        return;
+      }
+    } catch (_) {}
+    // Fallback coerente
+    if (from === 'search') location.href = '/ricerca.html?mode=edit';
+    else location.href = '/home.html';
+  }
+
+  function setDisabled(disabled) {
+    document.querySelectorAll('#form input, #form textarea, #form button')
+      .forEach(el => el.disabled = disabled);
+  }
+
+  async function loadRecord() {
+    if (!rid) {
+      alert('ID mancante nell’URL. Torno alla pagina precedente.');
+      goBack();
+      return;
+    }
+    try {
+      setDisabled(true);
+      const url = `${API}/records/${encodeURIComponent(rid)}`;
+      console.log('[GET]', url);
+      const res = await fetch(url);
+      if (!res.ok) {
+        const txt = await res.text().catch(()=> '');
+        alert(`Errore nel caricamento (HTTP ${res.status}).\n${txt.slice(0,200)}`);
+        goBack();
+        return;
+      }
+      const r = await res.json();
+
+      $('#rid').value          = r.id;
+      $('#nome').value         = r.nome || '';
+      $('#cognome').value      = r.cognome || '';
+      $('#email').value        = r.email || '';
+      $('#prefisso').value     = r.telefono_prefisso || '+39';
+      $('#telefono').value     = r.telefono_numero || '';
+      $('#giorni').value       = (r.giorni_prima ?? '') === null ? '' : (r.giorni_prima ?? '');
+      $('#def_nome').value     = r.def_nome || '';
+      $('#def_cognome').value  = r.def_cognome || '';
+      $('#def_data').value     = r.def_data || '';
+      $('#oggetto').value      = r.oggetto || '';
+      $('#corpo').value        = r.corpo || '';
+    } catch (e) {
+      alert('Errore di rete nel caricamento del contatto.');
+      goBack();
+    } finally {
+      setDisabled(false);
+    }
+  }
+
+  // === Handlers bottoni ===
+  const btnBack = document.getElementById('btnBack');
+  if (btnBack) btnBack.onclick = goBack;
+
+  const btnExit = document.getElementById('btnExit');
+  if (btnExit) btnExit.onclick = () => {
+    if (confirm('Vuoi uscire senza salvare?')) goBack();
+  };
+
+  // === Salva con conferme ===
+  const form = document.getElementById('form');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!confirm('Vuoi sovrascrivere i dati?')) {
+      if (confirm('Vuoi uscire senza salvare?')) goBack();
+      return;
+    }
+
+    const payload = {
+      id: $('#rid').value,
+      nome: $('#nome').value.trim(),
+      cognome: $('#cognome').value.trim(),
+      email: $('#email').value.trim() || null,
+      telefono_prefisso: $('#prefisso').value.trim() || '+39',
+      telefono_numero: $('#telefono').value.trim() || null,
+      giorni_prima: $('#giorni').value ? Number($('#giorni').value) : null,
+      def_nome: $('#def_nome').value.trim() || null,
+      def_cognome: $('#def_cognome').value.trim() || null,
+      def_data: $('#def_data').value || null,
+      oggetto: $('#oggetto').value || null,
+      corpo: $('#corpo').value || null,
+    };
+
+    try {
+      setDisabled(true);
+      const url = `${API}/records/${encodeURIComponent(rid)}`;
+      console.log('[PUT]', url, payload);
+      const res = await fetch(url, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(()=>({}));
+        alert('Errore salvataggio: ' + (err.detail || res.status));
+        setDisabled(false);
+        return;
+      }
+      alert('Dati aggiornati ✅');
+      goBack();
+    } catch (e) {
+      alert('Errore di rete durante il salvataggio');
+      setDisabled(false);
+    }
+  });
+
+  // Avvio
+  loadRecord();
+});
+</script>
