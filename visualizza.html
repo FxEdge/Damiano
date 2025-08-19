@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Visualizzazione inserimenti</title>
+  <link rel="icon" href="assets/logo.svg">
+  <style>
+    :root{--bg:#f3f4f6;--surface:#fff;--text:#111827;--muted:#6b7280;--border:#e5e7eb;--primary:#2563eb}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto}
+    .wrap{width:min(1100px,92%);margin-inline:auto;padding:20px}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.06);padding:16px}
+    h1{margin:0 0 8px}
+    .muted{color:var(--muted)}
+    .toolbar{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+    .input{padding:10px;border:1px solid var(--border);border-radius:10px;font:inherit;background:#fff;width:280px}
+    .table-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px;background:#fff}
+    table{width:100%;border-collapse:collapse}
+    thead tr{background:#f9fafb}
+    th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+    tr:hover td{background:#fafafa}
+    .btn{display:inline-block;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;cursor:pointer}
+    .pill{font-size:12px;background:#eef2ff;color:#3730a3;border-radius:999px;padding:2px 8px}
+    .right{display:flex;gap:8px;align-items:center}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Visualizzazione inserimenti</h1>
+      <a class="btn" href="home.html">← Torna alla Dashboard</a>
+    </header>
+
+    <section class="card">
+      <div class="toolbar">
+        <div class="muted">Elenco in sola lettura, ordinato per <b>cognome</b> (A→Z).</div>
+        <div class="right">
+          <input id="q" class="input" type="text" placeholder="Cerca per nome, cognome o email…">
+          <span id="count" class="pill">0 elementi</span>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Cognome</th>
+              <th>Email</th>
+              <th>Telefono</th>
+              <th>Defunto</th>
+              <th>Data</th>
+              <th>Giorni prima</th>
+            </tr>
+          </thead>
+          <tbody><!-- rows --></tbody>
+        </table>
+      </div>
+    </section>
+
+    <p class="muted" style="margin-top:10px">API: <code id="apiInUso"></code></p>
+  </div>
+
+  <script>
+    // ==== Guard auth ====
+    if (!localStorage.getItem('damiano_token')) { location.replace('index.html'); }
+
+    // ==== API base ====
+    const DEFAULT_API = 'https://damiano-backend-ancz.onrender.com';
+    const API = localStorage.getItem('damiano_api') || DEFAULT_API;
+    document.getElementById('apiInUso').textContent = API;
+
+    // ==== Helpers ====
+    const $ = s => document.querySelector(s);
+    let all = [];
+
+    function norm(s){ return (s||'').trim().toLowerCase(); }
+
+    function sortByCognome(arr){
+      return arr.slice().sort((a,b)=>{
+        const ac = norm(a.cognome), bc = norm(b.cognome);
+        if (ac < bc) return -1;
+        if (ac > bc) return 1;
+        // tie-breaker sul nome
+        const an = norm(a.nome), bn = norm(b.nome);
+        if (an < bn) return -1;
+        if (an > bn) return 1;
+        return 0;
+      });
+    }
+
+    async function load(){
+      try{
+        const res = await fetch(`${API}/records`);
+        if(!res.ok){
+          const txt = await res.text().catch(()=> '');
+          alert(`Errore caricamento (HTTP ${res.status}).\n${txt.slice(0,200)}`);
+          return;
+        }
+        all = await res.json();
+        render(sortByCognome(all));
+      }catch(e){
+        alert('Errore di rete nel caricamento degli inserimenti.');
+      }
+    }
+
+    function render(rows){
+      const tb = $('#tbl tbody');
+      tb.innerHTML = '';
+      $('#count').textContent = `${rows.length} elemento${rows.length===1?'':'i'}`;
+
+      rows.forEach(r=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${r.nome || ''}</td>
+          <td>${r.cognome || ''}</td>
+          <td>${r.email || ''}</td>
+          <td>${(r.telefono_prefisso||'') + (r.telefono_numero? ' '+r.telefono_numero : '')}</td>
+          <td>${[r.def_nome||'', r.def_cognome||''].filter(Boolean).join(' ')}</td>
+          <td>${r.def_data || ''}</td>
+          <td>${(r.giorni_prima ?? '')}</td>
+        `;
+        tb.appendChild(tr);
+      });
+    }
+
+    // filtro live (nome/cognome/email)
+    document.getElementById('q').addEventListener('input', e=>{
+      const q = norm(e.target.value);
+      const base = sortByCognome(all);
+      if(!q) return render(base);
+      const filt = base.filter(r =>
+        norm(r.nome).includes(q) ||
+        norm(r.cognome).includes(q) ||
+        norm(r.email).includes(q)
+      );
+      render(filt);
+    });
+
+    load();
+  </script>
+</body>
+</html>
