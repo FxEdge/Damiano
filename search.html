@@ -93,11 +93,12 @@
           <td>${(r.telefono_prefisso||'') + (r.telefono_numero? ' '+r.telefono_numero : '')}</td>
           <td>${[r.def_nome||'', r.def_cognome||''].filter(Boolean).join(' ')}</td>
         `;
-        tr.ondblclick = () => {
-          if (confirm('Vuoi modificare questo contatto?')) {
+          tr.ondblclick = () => {
+            if (confirm('Vuoi modificare questo contatto?')) {
             location.href = `/dettagli.html?id=${encodeURIComponent(r.id)}&mode=edit&from=search`;
-          }
-        };
+            }
+          };
+
         tb.appendChild(tr);
       });
     }
