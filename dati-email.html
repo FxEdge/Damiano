@@ -21,28 +21,11 @@
     .muted{color:var(--muted)}
     .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
     .hidden{display:none}
-    .list {
-  margin-top: 10px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  max-height: 260px;
-  overflow: auto;
-  background: #fff;
-  padding: 10px;   /* 🔹 questo è l’aggiunta */
-}
-    .item{padding:10px;border-bottom:1px solid var(--border);cursor:pointer}
+    .list{margin-top:10px;border:1px solid var(--border);border-radius:10px;max-height:260px;overflow:auto;background:#fff;padding:10px}
+    .item{padding:10px;border-bottom:1px solid var(--border);cursor:pointer;position:relative}
     .item:hover{background:#f7f7fb}
-    .item { position: relative; }
-.item .item-del {
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  cursor: pointer;
-  opacity: .7;
-}
-.item .item-del:hover {
-  opacity: 1;
-}
+    .item .item-del{position:absolute;right:10px;top:10px;cursor:pointer;opacity:.7}
+    .item .item-del:hover{opacity:1}
     .badge{font-size:12px;padding:2px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;margin-left:6px}
     .footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
   </style>
@@ -64,9 +47,8 @@
       <!-- Step 1 -->
       <div class="actions hidden" id="subject-ask1">
         <span>Vuoi richiamare un testo già inserito?</span>
-       <button class="btn" id="subject-yes">SI</button> 
-       <button class="btn" id="subject-no">NO</button>
-       <button class="btn" id="btn-trash-body">🗑️ Cestino</button>
+        <button class="btn" id="subject-yes">SI</button>
+        <button class="btn" id="subject-no">NO</button>
       </div>
 
       <!-- Lista modelli -->
@@ -106,12 +88,13 @@
       <div class="row">
         <textarea id="body" disabled></textarea>
         <button class="btn btn-primary" id="btn-change-body">Cambia</button>
+        <button class="btn" id="btn-trash-body">🗑️ Cestino</button>
       </div>
 
       <div class="actions hidden" id="body-ask1">
         <span>Vuoi richiamare un testo già inserito?</span>
-       <button class="btn" id="body-yes">SI</button>     
-       <button class="btn" id="body-no">NO</button>
+        <button class="btn" id="body-yes">SI</button>
+        <button class="btn" id="body-no">NO</button>
       </div>
 
       <div class="list hidden" id="body-list"></div>
@@ -160,6 +143,8 @@
     // Temporanei scelti dalla lista
     let pickedSubject = { id: null, content: '' };
     let pickedBody = { id: null, content: '' };
+    // Modalità cestino
+    let deletionMode = null; // "subject" | "body" | null
 
     // Carica ATTIVI
     async function loadSettings(){
@@ -169,106 +154,108 @@
       q('#body').value    = initialBody    = data.body || '';
     }
 
-    // Lista modelli (CON LOG + header conteggio)
-async function loadTemplates(type, containerSel){
-  const url = `${API_BASE}/api/email/templates?type=${type}`;
-  console.log('[API] GET', url);                    // 👈 LOG
-  let list = [];
-  try{
-    const res = await fetch(url);
-    list = await res.json();
-  }catch(e){
-    console.error('[API] Errore fetch templates', e);
-  }
-  console.log('[API] Templates ricevuti:', type, list); // 👈 LOG
+    // Lista modelli (supporta opts.deletion)
+    async function loadTemplates(type, containerSel, opts = {}) {
+      const url = `${API_BASE}/api/email/templates?type=${type}`;
+      console.log('[API] GET', url);
+      let list = [];
+      try {
+        const res = await fetch(url);
+        list = await res.json();
+      } catch (e) {
+        console.error('[API] Errore fetch templates', e);
+      }
+      console.log('[API] Templates ricevuti:', type, list);
 
-  const box = q(containerSel);
-  box.innerHTML = '';  // pulisci
+      const box = q(containerSel);
+      box.innerHTML = '';
 
-  // header conteggio
-  const header = document.createElement('div');
-  header.className = 'muted';
-  header.style.marginBottom = '8px';
-  header.textContent = `Modelli trovati: ${list.length}`;
-  box.appendChild(header);
+      // header conteggio
+      const header = document.createElement('div');
+      header.className = 'muted';
+      header.style.marginBottom = '8px';
+      header.textContent = `Modelli trovati: ${list.length}` + (opts.deletion ? ' — doppio click per cancellare' : '');
+      box.appendChild(header);
 
-  if(!list.length){
-    const empty = document.createElement('div');
-    empty.className = 'item muted';
-    empty.textContent = 'Nessun modello salvato';
-    box.appendChild(empty);
-    return;
-  }
+      if (!list.length) {
+        const empty = document.createElement('div');
+        empty.className = 'item muted';
+        empty.textContent = 'Nessun modello salvato';
+        box.appendChild(empty);
+        return;
+      }
 
-list.forEach(t=>{
-  const div = document.createElement('div');
-  div.className = 'item';
-  div.innerHTML = `
-    <b>${t.name}</b>
-    <div class="muted" style="margin-top:4px">${(t.content||'').slice(0,160)}</div>
-    <span class="item-del" title="Elimina">🗑️</span>
-  `;
+      list.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <b>${t.name}</b>
+          <div class="muted" style="margin-top:4px">${(t.content || '').slice(0,160)}</div>
+          <span class="item-del" title="Elimina">🗑️</span>
+        `;
 
-  // CLICK singolo → flusso attuale: chiedi “Usare questo testo?”
-  div.onclick = (e) => {
-    if (e.target.closest('.item-del')) return; // non interferire col cestino
-    if(type==='subject'){
-      pickedSubject = { id: t.id, content: t.content, name: t.name };
-      show('#subject-use-ask');
-    } else {
-      pickedBody = { id: t.id, content: t.content, name: t.name };
-      show('#body-use-ask');
+        // CLICK singolo → flusso uso (solo se NON in modalità cestino)
+        div.onclick = (e) => {
+          if (e.target.closest('.item-del')) return;
+          if (opts.deletion) return; // in cestino, click singolo non fa nulla
+          if (type === 'subject') {
+            pickedSubject = { id: t.id, content: t.content, name: t.name };
+            show('#subject-use-ask');
+          } else {
+            pickedBody = { id: t.id, content: t.content, name: t.name };
+            show('#body-use-ask');
+          }
+        };
+
+        // DOPPIO CLICK
+        div.ondblclick = async (e) => {
+          if (e.target.closest('.item-del')) return;
+
+          if (!opts.deletion) {
+            // comportamento originale: inserisci e passa a "Vuoi modificare?"
+            if (type === 'subject') {
+              q('#subject').value = t.content;
+              hide('#subject-list'); hide('#subject-use-ask'); show('#subject-ask2');
+            } else {
+              q('#body').value = t.content;
+              hide('#body-list'); hide('#body-use-ask'); show('#body-ask2');
+            }
+            return;
+          }
+
+          // Modalità cestino: conferma eliminazione
+          if (!confirm('Vuoi eliminare definitivamente questo File?')) return;
+          try {
+            const delUrl = `${API_BASE}/api/email/templates/${t.id}?type=${type}`;
+            const res = await fetch(delUrl, { method: 'DELETE' });
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              alert('Errore eliminazione: ' + (err.detail || res.status));
+              return;
+            }
+            // ricarica elenco in modalità cestino
+            loadTemplates(type, containerSel, { deletion: true });
+          } catch (err) {
+            alert('Errore di rete durante l’eliminazione');
+          }
+        };
+
+        // Icona 🗑️ (utile anche fuori dalla modalità cestino)
+        div.querySelector('.item-del').onclick = async (e) => {
+          e.stopPropagation();
+          if (!confirm('Vuoi eliminare definitivamente questo File?')) return;
+          try {
+            await fetch(`${API_BASE}/api/email/templates/${t.id}?type=${type}`, { method: 'DELETE' });
+            loadTemplates(type, containerSel, opts);
+          } catch (err) {
+            alert('Errore durante l’eliminazione');
+          }
+        };
+
+        box.appendChild(div);
+      });
     }
-  };
 
-  // DOPPIO CLICK → inserisci subito il testo e vai a “Vuoi modificare questo testo?”
-  div.ondblclick = (e) => {
-    if (e.target.closest('.item-del')) return;
-    if (type === 'subject') {
-      q('#subject').value = t.content;           // metti il testo
-      hide('#subject-list');                     // chiudi lista
-      hide('#subject-use-ask');                  // non serve il passo “Usare?”
-      show('#subject-ask2');                     // chiedi direttamente se vuoi modificare
-    } else {
-      q('#body').value = t.content;
-      hide('#body-list');
-      hide('#body-use-ask');
-      show('#body-ask2');
-    }
-  };
-
-  // Cestino (vedi punto 2 sotto)
-  div.querySelector('.item-del').onclick = async (e) => {
-    e.stopPropagation();
-    if (!confirm(`Eliminare il modello "${t.name}"?`)) return;
-    try {
-      await fetch(`${API_BASE}/api/email/templates/${t.id}?type=${type}`, { method: 'DELETE' });
-      // ricarica lista
-      loadTemplates(type, containerSel);
-    } catch(err){
-      alert('Errore durante l’eliminazione');
-    }
-  };
-  // CESTINO (Oggetto)
-q('#btn-trash-subject').onclick = () => {
-  deletionMode = 'subject';
-  hide('#subject-ask1'); hide('#subject-ask2'); hide('#subject-use-ask');
-  hide('#subject-save-ask'); hide('#subject-save-name');
-  loadTemplates('subject', '#subject-list', { deletion: true });
-  show('#subject-list');
-};
-
-q('#btn-trash-body').onclick = () => {
-  deletionMode = 'body';
-  hide('#body-ask1'); hide('#body-ask2'); hide('#body-use-ask');
-  hide('#body-save-ask'); hide('#body-save-name');
-  loadTemplates('body', '#body-list', { deletion: true });
-  show('#body-list');
-};
-
-  box.appendChild(div);
-});
-}
     // Salva ATTIVI
     async function saveSettings(payload){
       await fetch(`${API_BASE}/api/email/settings`, {
@@ -286,128 +273,144 @@ q('#btn-trash-body').onclick = () => {
       return res.json();
     }
 
-  document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', () => {
 
-  /* ===== SUBJECT ===== */
-  q('#btn-change-subject').onclick = () => {
-    hide('#subject-ask2'); hide('#subject-list'); hide('#subject-save-ask'); hide('#subject-save-name'); hide('#subject-use-ask');
-    show('#subject-ask1');
-  };
+      /* ===== SUBJECT ===== */
+      q('#btn-change-subject').onclick = () => {
+        hide('#subject-ask2'); hide('#subject-list'); hide('#subject-save-ask'); hide('#subject-save-name'); hide('#subject-use-ask');
+        deletionMode = null;
+        show('#subject-ask1');
+      };
 
-  // SI → lista diretta
-  q('#subject-yes').onclick = () => {
-    console.log('[UI] Click su SI (subject)');
-    hide('#subject-ask1');
-    loadTemplates('subject', '#subject-list');
-    show('#subject-list');
-  };
+      // CESTINO (Oggetto)
+      q('#btn-trash-subject').onclick = () => {
+        deletionMode = 'subject';
+        hide('#subject-ask1'); hide('#subject-ask2'); hide('#subject-use-ask');
+        hide('#subject-save-ask'); hide('#subject-save-name');
+        loadTemplates('subject', '#subject-list', { deletion: true });
+        show('#subject-list');
+      };
 
-  // NO → domanda “Vuoi modificare questo testo?”
-  q('#subject-no').onclick = () => {
-    console.log('[UI] Click su NO (subject)');
-    hide('#subject-ask1');
-    show('#subject-ask2');
-  };
+      // SI → lista diretta
+      q('#subject-yes').onclick = () => {
+        hide('#subject-ask1');
+        loadTemplates('subject', '#subject-list');
+        show('#subject-list');
+      };
 
-  // Dopo scelta lista: "Usare questo testo?"
-  q('#subject-use-yes').onclick = async () => {
-    q('#subject').value = pickedSubject.content;
-    await saveSettings({ subject: pickedSubject.content, subject_template_id: pickedSubject.id });
-    hide('#subject-use-ask'); hide('#subject-list');
-    alert('Impostato come testo attivo.');
-  };
-  q('#subject-use-no').onclick = () => { hide('#subject-use-ask'); show('#subject-ask2'); };
+      // NO → domanda “Vuoi modificare questo testo?”
+      q('#subject-no').onclick = () => {
+        hide('#subject-ask1');
+        show('#subject-ask2');
+      };
 
-  q('#subject-ask2 [data-edit]').onclick = () => {
-    q('#subject').disabled = false;
-    hide('#subject-ask2');
-    show('#subject-save-ask');
-  };
+      // Dopo scelta lista: "Usare questo testo?"
+      q('#subject-use-yes').onclick = async () => {
+        q('#subject').value = pickedSubject.content;
+        await saveSettings({ subject: pickedSubject.content, subject_template_id: pickedSubject.id });
+        hide('#subject-use-ask'); hide('#subject-list');
+        alert('Impostato come testo attivo.');
+      };
+      q('#subject-use-no').onclick = () => { hide('#subject-use-ask'); show('#subject-ask2'); };
 
-  q('[data-save="subject"]').onclick = () => { hide('#subject-save-ask'); show('#subject-save-name'); };
-  q('[data-nosave="subject"]').onclick = async () => {
-    q('#subject').value   = initialSubject;
-    q('#subject').disabled = true;
-    await saveSettings({ subject: initialSubject, subject_template_id: null });
-    hide('#subject-save-ask'); hide('#subject-ask2');
-  };
+      q('#subject-ask2 [data-edit]').onclick = () => {
+        q('#subject').disabled = false;
+        hide('#subject-ask2');
+        show('#subject-save-ask');
+      };
 
-  q('#subject-confirm').onclick = async () => {
-    const name = q('#subject-model-name').value.trim();
-    if(!name) return alert('Inserisci un nome');
-    const content = q('#subject').value;
-    const t = await saveTemplate('subject', name, content);
-    await saveSettings({ subject: content, subject_template_id: t.id });
-    q('#subject').disabled = true; hide('#subject-save-name');
-    alert('Salvato e impostato come attivo.');
-  };
+      q('[data-save="subject"]').onclick = () => { hide('#subject-save-ask'); show('#subject-save-name'); };
+      q('[data-nosave="subject"]').onclick = async () => {
+        q('#subject').value   = initialSubject;
+        q('#subject').disabled = true;
+        await saveSettings({ subject: initialSubject, subject_template_id: null });
+        hide('#subject-save-ask'); hide('#subject-ask2');
+      };
 
-  /* ===== BODY (opzionale ora, ma coerente) ===== */
-  q('#btn-change-body').onclick = () => {
-    hide('#body-ask2'); hide('#body-list'); hide('#body-save-ask'); hide('#body-save-name'); hide('#body-use-ask');
-    show('#body-ask1');
-  };
+      q('#subject-confirm').onclick = async () => {
+        const name = q('#subject-model-name').value.trim();
+        if(!name) return alert('Inserisci un nome');
+        const content = q('#subject').value;
+        const t = await saveTemplate('subject', name, content);
+        await saveSettings({ subject: content, subject_template_id: t.id });
+        q('#subject').disabled = true; hide('#subject-save-name');
+        alert('Salvato e impostato come attivo.');
+      };
 
-  q('#body-yes').onclick = () => {
-    console.log('[UI] Click su SI (body)');
-    hide('#body-ask1');
-    loadTemplates('body', '#body-list');
-    show('#body-list');
-  };
+      /* ===== BODY ===== */
+      q('#btn-change-body').onclick = () => {
+        hide('#body-ask2'); hide('#body-list'); hide('#body-save-ask'); hide('#body-save-name'); hide('#body-use-ask');
+        deletionMode = null;
+        show('#body-ask1');
+      };
 
-  q('#body-no').onclick = () => {
-    console.log('[UI] Click su NO (body)');
-    hide('#body-ask1');
-    show('#body-ask2');
-  };
+      // CESTINO (Corpo)
+      q('#btn-trash-body').onclick = () => {
+        deletionMode = 'body';
+        hide('#body-ask1'); hide('#body-ask2'); hide('#body-use-ask');
+        hide('#body-save-ask'); hide('#body-save-name');
+        loadTemplates('body', '#body-list', { deletion: true });
+        show('#body-list');
+      };
 
-  q('#body-use-yes').onclick = async () => {
-    q('#body').value = pickedBody.content;
-    await saveSettings({ body: pickedBody.content, body_template_id: pickedBody.id });
-    hide('#body-use-ask'); hide('#body-list');
-    alert('Impostato come testo attivo.');
-  };
-  q('#body-use-no').onclick = () => { hide('#body-use-ask'); show('#body-ask2'); };
+      q('#body-yes').onclick = () => {
+        hide('#body-ask1');
+        loadTemplates('body', '#body-list');
+        show('#body-list');
+      };
 
-  q('#body-ask2 [data-edit]').onclick = () => {
-    q('#body').disabled = false;
-    hide('#body-ask2');
-    show('#body-save-ask');
-  };
+      q('#body-no').onclick = () => {
+        hide('#body-ask1');
+        show('#body-ask2');
+      };
 
-  q('[data-save="body"]').onclick = () => { hide('#body-save-ask'); show('#body-save-name'); };
-  q('[data-nosave="body"]').onclick = async () => {
-    q('#body').value    = initialBody;
-    q('#body').disabled = true;
-    await saveSettings({ body: initialBody, body_template_id: null });
-    hide('#body-save-ask'); hide('#body-ask2');
-  };
+      q('#body-use-yes').onclick = async () => {
+        q('#body').value = pickedBody.content;
+        await saveSettings({ body: pickedBody.content, body_template_id: pickedBody.id });
+        hide('#body-use-ask'); hide('#body-list');
+        alert('Impostato come testo attivo.');
+      };
+      q('#body-use-no').onclick = () => { hide('#body-use-ask'); show('#body-ask2'); };
 
-  q('#body-confirm').onclick = async () => {
-    const name = q('#body-model-name').value.trim();
-    if(!name) return alert('Inserisci un nome');
-    const content = q('#body').value;
-    const t = await saveTemplate('body', name, content);
-    await saveSettings({ body: content, body_template_id: t.id });
-    q('#body').disabled = true; hide('#body-save-name');
-    alert('Salvato e impostato come attivo.');
-  };
+      q('#body-ask2 [data-edit]').onclick = () => {
+        q('#body').disabled = false;
+        hide('#body-ask2');
+        show('#body-save-ask');
+      };
 
-  // NO generici (annulla e ripristina)
-  document.querySelectorAll('[data-cancel]').forEach(btn=>{
-    btn.onclick = () => {
-      ['#subject-ask1','#subject-ask2','#subject-list','#subject-use-ask','#subject-save-ask','#subject-save-name',
-       '#body-ask1','#body-ask2','#body-list','#body-use-ask','#body-save-ask','#body-save-name'
-      ].forEach(hide);
-      q('#subject').value = initialSubject;
-      q('#body').value = initialBody;
-      q('#subject').disabled = true;
-      q('#body').disabled = true;
-    };
-  });
+      q('[data-save="body"]').onclick = () => { hide('#body-save-ask'); show('#body-save-name'); };
+      q('[data-nosave="body"]').onclick = async () => {
+        q('#body').value    = initialBody;
+        q('#body').disabled = true;
+        await saveSettings({ body: initialBody, body_template_id: null });
+        hide('#body-save-ask'); hide('#body-ask2');
+      };
 
-}); // ← fine DOMContentLoaded
+      q('#body-confirm').onclick = async () => {
+        const name = q('#body-model-name').value.trim();
+        if(!name) return alert('Inserisci un nome');
+        const content = q('#body').value;
+        const t = await saveTemplate('body', name, content);
+        await saveSettings({ body: content, body_template_id: t.id });
+        q('#body').disabled = true; hide('#body-save-name');
+        alert('Salvato e impostato come attivo.');
+      };
 
+      // NO generici (annulla e ripristina)
+      document.querySelectorAll('[data-cancel]').forEach(btn=>{
+        btn.onclick = () => {
+          ['#subject-ask1','#subject-ask2','#subject-list','#subject-use-ask','#subject-save-ask','#subject-save-name',
+           '#body-ask1','#body-ask2','#body-list','#body-use-ask','#body-save-ask','#body-save-name'
+          ].forEach(hide);
+          q('#subject').value = initialSubject;
+          q('#body').value = initialBody;
+          q('#subject').disabled = true;
+          q('#body').disabled = true;
+          deletionMode = null;
+        };
+      });
+
+    }); // ← fine DOMContentLoaded
 
     loadSettings();
   </script>
