@@ -54,6 +54,7 @@
               <th>Defunto</th>
               <th>Data</th>
               <th>Giorni prima</th>
+              <th>Data inserimento</th><!-- 🆕 -->
             </tr>
           </thead>
           <tbody><!-- rows --></tbody>
@@ -112,6 +113,7 @@
       $('#count').textContent = `${rows.length} elemento${rows.length===1?'':'i'}`;
 
       rows.forEach(r=>{
+        const created = (r.created_at || '').slice(0,10); // YYYY-MM-DD
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${r.cognome || ''}</td>
@@ -121,6 +123,7 @@
           <td>${[r.def_nome||'', r.def_cognome||''].filter(Boolean).join(' ')}</td>
           <td>${r.def_data || ''}</td>
           <td>${(r.giorni_prima ?? '')}</td>
+          <td>${created}</td>
         `;
         tb.appendChild(tr);
       });
@@ -141,16 +144,13 @@
 
     // ==== Export CSV ====
     function exportCSVFromDOM(){
-      // header in stesso ordine della tabella
-      const headers = ["Cognome","Nome","Email","Telefono","Defunto","Data","Giorni prima"];
+      const headers = ["Cognome","Nome","Email","Telefono","Defunto","Data","Giorni prima","Data inserimento"];
       const lines = [headers.join(",")];
 
       const trs = document.querySelectorAll('#tbl tbody tr');
       trs.forEach(tr=>{
         const tds = tr.querySelectorAll('td');
-        // tds[0]=Cognome, [1]=Nome, [2]=Email, [3]=Telefono, [4]=Defunto, [5]=Data, [6]=Giorni prima
-        const vals = Array.from(tds).map(td => td.textContent);
-        // escape CSV
+        const vals = Array.from(tds).map(td => td.textContent); // include anche la nuova colonna
         lines.push(vals.map(v => `"${String(v).replace(/"/g,'""')}"`).join(","));
       });
 
