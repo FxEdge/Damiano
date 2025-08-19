@@ -58,13 +58,15 @@
       <div class="row">
         <input id="subject" type="text" disabled />
         <button class="btn btn-primary" id="btn-change-subject">Cambia</button>
+        <button class="btn" id="btn-trash-subject">🗑️ Cestino</button>
       </div>
 
       <!-- Step 1 -->
       <div class="actions hidden" id="subject-ask1">
         <span>Vuoi richiamare un testo già inserito?</span>
        <button class="btn" id="subject-yes">SI</button> 
-      <button class="btn" id="subject-no">NO</button>   
+       <button class="btn" id="subject-no">NO</button>
+       <button class="btn" id="btn-trash-body">🗑️ Cestino</button>
       </div>
 
       <!-- Lista modelli -->
@@ -247,6 +249,22 @@ list.forEach(t=>{
       alert('Errore durante l’eliminazione');
     }
   };
+  // CESTINO (Oggetto)
+q('#btn-trash-subject').onclick = () => {
+  deletionMode = 'subject';
+  hide('#subject-ask1'); hide('#subject-ask2'); hide('#subject-use-ask');
+  hide('#subject-save-ask'); hide('#subject-save-name');
+  loadTemplates('subject', '#subject-list', { deletion: true });
+  show('#subject-list');
+};
+
+q('#btn-trash-body').onclick = () => {
+  deletionMode = 'body';
+  hide('#body-ask1'); hide('#body-ask2'); hide('#body-use-ask');
+  hide('#body-save-ask'); hide('#body-save-name');
+  loadTemplates('body', '#body-list', { deletion: true });
+  show('#body-list');
+};
 
   box.appendChild(div);
 });
@@ -268,8 +286,7 @@ list.forEach(t=>{
       return res.json();
     }
 
-   // 👇 Metti tutto dentro a DOMContentLoaded, così i bottoni esistono di sicuro
-document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', () => {
 
   /* ===== SUBJECT ===== */
   q('#btn-change-subject').onclick = () => {
