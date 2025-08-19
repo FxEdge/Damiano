@@ -3,98 +3,111 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Scheda cliente – Damiano</title>
+  <title>Dettagli contatto</title>
   <link rel="icon" href="assets/logo.svg">
   <style>
-    body{margin:0;background:#f3f4f6;font-family:system-ui}
-    .wrap{width:min(900px,92%);margin:auto;padding:20px}
-    .card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    label{font-size:12px;color:#6b7280}
-    input{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px}
-    .row{display:flex;gap:8px;margin-top:12px}
-    .btn{padding:10px 14px;border-radius:10px;border:1px solid #e5e7eb;background:#fff;cursor:pointer}
-    .primary{background:#2563eb;border:none;color:#fff}
-    .muted{color:#6b7280}
+    :root{--bg:#f3f4f6;--surface:#fff;--text:#111827;--muted:#6b7280;--border:#e5e7eb;--primary:#2563eb}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto}
+    .wrap{width:min(1100px,92%);margin-inline:auto;padding:20px}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.06);padding:16px}
+    h1{margin:0 0 8px}
+    .muted{color:var(--muted)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{display:block;font-weight:600;margin:8px 0 6px}
+    input[type="text"], input[type="date"], input[type="number"], textarea{
+      width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;font:inherit;background:#fff
+    }
+    textarea{min-height:140px;resize:vertical;white-space:pre-wrap}
+    .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+    .btn{padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:#fff;cursor:pointer}
+    .btn-primary{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1 id="title">Scheda cliente</h1>
+    <header>
+      <h1>Dettagli contatto</h1>
+      <button id="btnBack" class="btn">← Torna indietro</button>
+    </header>
+
     <section class="card">
-      <div class="grid">
-        <div><label>Nome</label><input id="nome" /></div>
-        <div><label>Cognome</label><input id="cognome" /></div>
-        <div><label>Email</label><input id="email" type="email"/></div>
-        <div><label>Telefono</label><input id="telefono"/></div>
-        <div><label>Indirizzo</label><input id="indirizzo1"/></div>
-        <div><label>Città</label><input id="citta"/></div>
-      </div>
-      <div class="row">
-        <button id="btnBack" class="btn">⬅️ Indietro</button>
-        <button id="btnSave" class="btn primary" style="display:none">💾 Salva</button>
-      </div>
-      <p id="status" class="muted"></p>
+      <form id="form" class="grid">
+        <input type="hidden" id="rid">
+
+        <div>
+          <label>Nome</label>
+          <input type="text" id="nome">
+        </div>
+        <div>
+          <label>Cognome</label>
+          <input type="text" id="cognome">
+        </div>
+
+        <div>
+          <label>Email</label>
+          <input type="text" id="email">
+        </div>
+        <div>
+          <label>Telefono (prefisso)</label>
+          <input type="text" id="prefisso" value="+39">
+        </div>
+
+        <div>
+          <label>Telefono (numero)</label>
+          <input type="text" id="telefono">
+        </div>
+        <div>
+          <label>Giorni prima (promemoria)</label>
+          <input type="number" id="giorni" min="0">
+        </div>
+
+        <div>
+          <label>Defunto – Nome</label>
+          <input type="text" id="def_nome">
+        </div>
+        <div>
+          <label>Defunto – Cognome</label>
+          <input type="text" id="def_cognome">
+        </div>
+
+        <div>
+          <label>Defunto – Data (YYYY-MM-DD)</label>
+          <input type="date" id="def_data">
+        </div>
+        <div>
+          <label>Oggetto email</label>
+          <input type="text" id="oggetto">
+        </div>
+
+        <div style="grid-column:1 / -1">
+          <label>Corpo email</label>
+          <textarea id="corpo"></textarea>
+        </div>
+
+        <div class="actions" style="grid-column:1 / -1">
+          <button type="button" id="btnExit" class="btn">Esci</button>
+          <button type="submit" class="btn btn-primary">💾 Salva</button>
+        </div>
+      </form>
     </section>
+
+    <p class="muted" style="margin-top:10px">API: <code id="apiInUso"></code></p>
   </div>
 
   <script>
-    if (!localStorage.getItem('damiano_token')) location.replace('index.html');
+    // ===== Guard auth =====
+    if (!localStorage.getItem('damiano_token')) { location.replace('index.html'); }
 
+    // ===== API base =====
     const DEFAULT_API = 'https://damiano-backend-ancz.onrender.com';
     const API = localStorage.getItem('damiano_api') || DEFAULT_API;
+    document.getElementById('apiInUso').textContent = API;
 
-    const params = new URLSearchParams(location.search);
-    const id = params.get('id');
-    const mode = params.get('mode') || 'view';
-
+    // ===== Helpers =====
     const $ = s => document.querySelector(s);
-    const status = $('#status');
+    const params = new URLSearchParams(location.search);
+    const rid = params.get('id');
+    const from = params.get('from'); //
 
-    document.getElementById('title').textContent = 'Scheda cliente (' + mode + ')';
-    if (mode === 'edit') document.getElementById('btnSave').style.display = '';
-
-    function fill(r){
-      $('#nome').value = r.nome || '';
-      $('#cognome').value = r.cognome || '';
-      $('#email').value = r.email || '';
-      $('#telefono').value = r.telefono || '';
-      $('#indirizzo1').value = r.indirizzo1 || '';
-      $('#citta').value = r.citta || '';
-      // readonly se view
-      const ro = (mode !== 'edit');
-      document.querySelectorAll('input').forEach(i => i.disabled = ro);
-    }
-
-    async function load(){
-      const r = await fetch(API + '/records');
-      const d = await r.json();
-      const rec = (d.records || []).find(x => x.id === id);
-      if (!rec) { status.textContent = 'Record non trovato'; return; }
-      fill(rec);
-    }
-
-    async function save(){
-      const body = {
-        nome: $('#nome').value.trim(),
-        cognome: $('#cognome').value.trim(),
-        email: $('#email').value.trim(),
-        telefono: $('#telefono').value.trim(),
-        indirizzo1: $('#indirizzo1').value.trim(),
-        citta: $('#citta').value.trim(),
-      };
-      const r = await fetch(API + '/records/' + id, {
-        method:'PUT', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(body),
-      });
-      await r.json().catch(()=>{});
-      status.textContent = 'Salvato ✓';
-    }
-
-    document.getElementById('btnBack').addEventListener('click', () => history.back());
-    document.getElementById('btnSave').addEventListener('click', save);
-
-    load();
-  </script>
-</body>
-</html>
