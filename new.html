@@ -19,12 +19,6 @@
     .ok{color:#065f46}.bad{color:#b91c1c}
     .err{font-size:12px;color:#b91c1c;display:none}
     input[readonly]{background:#f8fafc;cursor:not-allowed}
-  <div class="logo">
-   <img id="brandLogo"
-       src="/assets/logo.png"
-       alt="Damiano Logo"
-       style="height:80px; display:block; margin:0 auto; outline:2px dashed #999; background:#eee;">
-</div>
 <script>
   const img = document.getElementById('brandLogo');
   img.addEventListener('load',  () => console.log('Logo OK', img.naturalWidth+'x'+img.naturalHeight));
