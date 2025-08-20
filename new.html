@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Nuovo Inserimento – Damiano</title>
+  <link rel="icon" href="/assets/logo.png">
   <style>
     body{margin:0;background:#f3f4f6;font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto}
     .container{max-width:700px;margin:20px auto;background:#fff;border-radius:12px;padding:20px;box-shadow:0 4px 10px rgba(0,0,0,.08)}
@@ -19,13 +20,18 @@
     .ok{color:#065f46}.bad{color:#b91c1c}
     .err{font-size:12px;color:#b91c1c;display:none}
     input[readonly]{background:#f8fafc;cursor:not-allowed}
-<script>
-  const img = document.getElementById('brandLogo');
-  img.addEventListener('load',  () => console.log('Logo OK', img.naturalWidth+'x'+img.naturalHeight));
-  img.addEventListener('error', () => { console.warn('Logo non trovato, provo fiori.png'); img.src = '/assets/fiori.png'; });
-</script>
+    /* Logo */
+    .logo{ text-align:center; margin:20px 0; }
+    .logo img{ max-width:140px; height:auto; display:inline-block; }
+  </style>
+</head>
+<body>
 
-</div>
+  <!-- LOGO (percorso assoluto: funziona con http://localhost:8000) -->
+  <div class="logo">
+    <img src="/assets/logo.png" alt="Damiano Logo">
+  </div>
+
   <div class="container">
     <h1>Nuovo Inserimento</h1>
     <p class="muted">Compila i campi. Nome e Cognome sono obbligatori.</p>
@@ -122,41 +128,31 @@
   <script>
     const API = "https://damiano-backend-ancz.onrender.com"; // aggiorna con il tuo backend
 
-    // Oggetto editabile/readonly
+    // Toggle edit/readonly
     function toggleEditable(id, btnId){
       const input = document.getElementById(id);
       const btn = document.getElementById(btnId);
-      if(input.readOnly){
-        input.readOnly = false; btn.textContent="Salva";
-      } else {
-        input.readOnly = true; btn.textContent="Cambia";
-      }
+      if(input.readOnly){ input.readOnly = false; btn.textContent="Salva"; }
+      else { input.readOnly = true; btn.textContent="Cambia"; }
     }
     document.getElementById("btnOggetto").onclick=()=>toggleEditable("oggetto","btnOggetto");
     document.getElementById("btnCorpo").onclick=()=>toggleEditable("corpo","btnCorpo");
 
     document.getElementById("btnHome").onclick=()=>location.href="home.html";
 
-    // === Ricorrenza auto-calcolata (data decesso + 1 anno) ===
+    // Ricorrenza = data decesso + 1 anno (GG/MM/AAAA)
     (function(){
       const dateEl = document.getElementById('def_data');
       const ricEl  = document.getElementById('ricorrenza');
       const pad = n => String(n).padStart(2,'0');
-
       function updateRicorrenza(){
         const v = dateEl.value; // YYYY-MM-DD
-        if(!v){ ricEl.value = ''; return; }
+        if(!v){ ricEl.value=''; return; }
         const [y,m,d] = v.split('-').map(Number);
-        if(!y || !m || !d){ ricEl.value=''; return; }
-
-        const ricDate = new Date(y + 1, m - 1, d); // +1 anno
-        const gg = pad(ricDate.getDate());
-        const mm = pad(ricDate.getMonth() + 1);
-        const aa = ricDate.getFullYear();
-
-        ricEl.value = `${gg}/${mm}/${aa}`;
+        if(!y||!m||!d){ ricEl.value=''; return; }
+        const ricDate = new Date(y + 1, m - 1, d);
+        ricEl.value = `${pad(ricDate.getDate())}/${pad(ricDate.getMonth()+1)}/${ricDate.getFullYear()}`;
       }
-
       dateEl.addEventListener('change', updateRicorrenza);
       dateEl.addEventListener('input',  updateRicorrenza);
       updateRicorrenza();
@@ -166,7 +162,6 @@
     form.onsubmit=async e=>{
       e.preventDefault();
       document.getElementById("status").textContent="⏳ Salvataggio…";
-
       const rec={
         nome: nome.value.trim(),
         cognome: cognome.value.trim(),
@@ -176,12 +171,10 @@
         def_nome: def_nome.value.trim(),
         def_cognome: def_cognome.value.trim(),
         def_data: def_data.value,
-        // NOTA: la ricorrenza è derivata da def_data e non viene inviata al backend
         giorni_prima: parseInt(giorni_prima.value||"0"),
         oggetto: oggetto.value.trim(),
         corpo: corpo.value.trim()
       };
-
       try{
         let res=await fetch(API+"/records",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(rec)});
         if(res.status===201||res.status===200){
@@ -193,7 +186,7 @@
         if(res.status===409){
           if(confirm("Contatto duplicato. Vuoi sovrascrivere?")){
             const data=await res.json();
-            const id=data?.id; // se backend manda id, lo usiamo
+            const id=data?.id;
             if(id){
               let put=await fetch(API+"/records/"+id,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(rec)});
               if(put.ok){
@@ -214,7 +207,7 @@
     };
   </script>
 </body>
- </html>
+</html>
 
 
 
