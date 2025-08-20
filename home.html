@@ -21,15 +21,16 @@
     .muted{color:var(--muted)}
     .report{display:grid;gap:8px}
     .report .box{border:1px dashed var(--border);border-radius:12px;padding:10px}
-    .logo {
-     text-align: center;
-     margin: 20px 0;
-  }
-   .logo img {
-   max-width: 140px;
-   height: auto;
-   display: inline-block;
- }
+    /* Top logo (header hero) */
+.top-logo {
+  text-align: center;
+  margin: 20px 0;
+}
+.top-logo img {
+  max-width: 140px;
+  height: auto;
+  display: inline-block;
+}
 
     /* === NUOVO: metti i tre bottoni in colonna e a tutta larghezza === */
     .actions-stack{display:flex;flex-direction:column;gap:12px;margin-top:8px}
@@ -38,8 +39,8 @@
   </style>
 </head>
 <body>
-  <!-- LOGO -->
-<div class="logo">
+<!-- LOGO -->
+<div class="top-logo">
   <img src="assets/logo.png" alt="Damiano Logo">
 </div>
   <div class="wrap">
@@ -115,6 +116,7 @@
   </script>
 </body>
 </html>
+
 
 
 
