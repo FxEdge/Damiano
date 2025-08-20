@@ -66,8 +66,8 @@
           <input id="def_data" type="date" />
         </div>
         <div class="field" style="max-width:220px">
-          <label for="ricorrenza">Ricorrenza (GG/MM/AAAA)</label>
-          <input id="ricorrenza" type="text" placeholder="gg/mm" readonly aria-readonly="true" title="Derivata dalla data di decesso, aggiornata automaticamente" />
+          <label for="ricorrenza">Prossima Ricorrenza</label>
+          <input id="ricorrenza" type="text" placeholder="gg/mm/aaaa" readonly aria-readonly="true" title="Data decesso + 1 anno" />
         </div>
       </div>
 
@@ -115,22 +115,30 @@
 
     document.getElementById("btnHome").onclick=()=>location.href="home.html";
 
-    // === Ricorrenza auto-calcolata (GG/MM) a partire da def_data ===
- (function(){
-  const dateEl = document.getElementById('def_data');
-  const ricEl  = document.getElementById('ricorrenza');
-  const pad = n => String(n).padStart(2,'0');
-  function updateRicorrenza(){
-    const v = dateEl.value; // YYYY-MM-DD
-    if(!v){ ricEl.value = ''; return; }
-    const [y,m,d] = v.split('-').map(Number);
-    if(!y || !m || !d){ ricEl.value=''; return; }
-    ricEl.value = `${pad(d)}/${pad(m)}/${y}`; // GG/MM/AAAA
-  }
-  dateEl.addEventListener('change', updateRicorrenza);
-  dateEl.addEventListener('input',  updateRicorrenza);
-  updateRicorrenza();
-})();
+    // === Ricorrenza auto-calcolata (data decesso + 1 anno) ===
+    (function(){
+      const dateEl = document.getElementById('def_data');
+      const ricEl  = document.getElementById('ricorrenza');
+      const pad = n => String(n).padStart(2,'0');
+
+      function updateRicorrenza(){
+        const v = dateEl.value; // YYYY-MM-DD
+        if(!v){ ricEl.value = ''; return; }
+        const [y,m,d] = v.split('-').map(Number);
+        if(!y || !m || !d){ ricEl.value=''; return; }
+
+        const ricDate = new Date(y + 1, m - 1, d); // +1 anno
+        const gg = pad(ricDate.getDate());
+        const mm = pad(ricDate.getMonth() + 1);
+        const aa = ricDate.getFullYear();
+
+        ricEl.value = `${gg}/${mm}/${aa}`;
+      }
+
+      dateEl.addEventListener('change', updateRicorrenza);
+      dateEl.addEventListener('input',  updateRicorrenza);
+      updateRicorrenza();
+    })();
 
     const form=document.getElementById("formNew");
     form.onsubmit=async e=>{
@@ -157,7 +165,6 @@
         if(res.status===201||res.status===200){
           document.getElementById("status").textContent="✅ Salvato con successo";
           form.reset();
-          // dopo il reset, svuota anche la ricorrenza
           document.getElementById('ricorrenza').value='';
           return;
         }
@@ -186,5 +193,6 @@
   </script>
 </body>
 </html>
+
 
 
