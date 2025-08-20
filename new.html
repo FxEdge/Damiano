@@ -11,12 +11,14 @@
     label{display:block;font-size:13px;color:#374151;margin-top:12px}
     input,select,textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:8px;margin-top:4px}
     textarea{min-height:100px;resize:vertical}
-    .row{display:flex;gap:8px;margin-top:4px}
+    .row{display:flex;gap:8px;margin-top:4px;flex-wrap:wrap}
+    .field{flex:1;display:flex;flex-direction:column;min-width:180px}
     .btn{padding:10px 14px;border-radius:8px;cursor:pointer;border:1px solid #d1d5db;background:#fff}
     .btn-primary{background:#2563eb;color:#fff;border:none}
     .status{margin-top:14px;min-height:22px;font-size:14px}
     .ok{color:#065f46}.bad{color:#b91c1c}
     .err{font-size:12px;color:#b91c1c;display:none}
+    input[readonly]{background:#f8fafc;cursor:not-allowed}
   </style>
 </head>
 <body>
@@ -26,11 +28,11 @@
 
     <form id="formNew" novalidate>
       <!-- Dati cliente -->
-      <label>Nome *</label>
+      <label for="nome">Nome *</label>
       <input id="nome" required />
       <div id="err-nome" class="err">Inserisci il nome</div>
 
-      <label>Cognome *</label>
+      <label for="cognome">Cognome *</label>
       <input id="cognome" required />
       <div id="err-cognome" class="err">Inserisci il cognome</div>
 
@@ -46,40 +48,41 @@
         <input id="telefono" placeholder="Numero" inputmode="tel"/>
       </div>
 
-      <label>Email</label>
+      <label for="email">Email</label>
       <input id="email" type="email" placeholder="nome@dominio.it"/>
       <div id="err-email" class="err">Inserisci un indirizzo email valido</div>
 
       <!-- Dati defunto -->
-      <label>Nome Defunto</label>
+      <label for="def_nome">Nome Defunto</label>
       <input id="def_nome" />
 
-      <label>Cognome Defunto</label>
+      <label for="def_cognome">Cognome Defunto</label>
       <input id="def_cognome" />
 
-      <label>Data Decesso (Ricorrenza)</label>
-      <input id="def_data" type="date" />
-
-      <div class="field" style="min-width:160px">
-      <label for="input-ricorrenza">Ricorrenza (GG/MM)</label>
-      <input type="text" id="input-ricorrenza" name="ricorrenza"
-           placeholder="gg/mm" readonly aria-readonly="true"
-           title="Derivata dalla data di decesso, aggiornata automaticamente" />
-  </div>
-</div>
+      <label>Data Decesso / Ricorrenza</label>
+      <div class="row">
+        <div class="field">
+          <label for="def_data">Data Decesso</label>
+          <input id="def_data" type="date" />
+        </div>
+        <div class="field" style="max-width:220px">
+          <label for="ricorrenza">Ricorrenza (GG/MM)</label>
+          <input id="ricorrenza" type="text" placeholder="gg/mm" readonly aria-readonly="true" title="Derivata dalla data di decesso, aggiornata automaticamente" />
+        </div>
+      </div>
 
       <!-- Invio mail -->
-      <label>Giorni prima dell’invio</label>
+      <label for="giorni_prima">Giorni prima dell’invio</label>
       <input id="giorni_prima" type="number" min="0" placeholder="solo numeri"/>
-      <div id="err-giorni" class="err">Inserisci solo numeri >= 0</div>
+      <div id="err-giorni" class="err">Inserisci solo numeri &gt;= 0</div>
 
-      <label>Oggetto della mail</label>
+      <label for="oggetto">Oggetto della mail</label>
       <div class="row">
         <input id="oggetto" value="In memoria di {{NOME}} {{COGNOME}}" readonly />
         <button type="button" id="btnOggetto" class="btn">Cambia</button>
       </div>
 
-      <label>Corpo del messaggio</label>
+      <label for="corpo">Corpo del messaggio</label>
       <div class="row">
         <textarea id="corpo" readonly>Gentile {{NOME}} {{COGNOME}},&#10;ti ricordiamo con affetto in questa ricorrenza.&#10;—</textarea>
         <button type="button" id="btnCorpo" class="btn">Cambia</button>
@@ -112,6 +115,23 @@
 
     document.getElementById("btnHome").onclick=()=>location.href="home.html";
 
+    // === Ricorrenza auto-calcolata (GG/MM) a partire da def_data ===
+    (function(){
+      const dateEl = document.getElementById('def_data');
+      const ricEl  = document.getElementById('ricorrenza');
+      const pad = n => String(n).padStart(2,'0');
+      function updateRicorrenza(){
+        const v = dateEl.value; // YYYY-MM-DD
+        if(!v){ ricEl.value = ''; return; }
+        const [y,m,d] = v.split('-').map(Number);
+        if(!y || !m || !d){ ricEl.value=''; return; }
+        ricEl.value = `${pad(d)}/${pad(m)}`;
+      }
+      dateEl.addEventListener('change', updateRicorrenza);
+      dateEl.addEventListener('input',  updateRicorrenza);
+      updateRicorrenza();
+    })();
+
     const form=document.getElementById("formNew");
     form.onsubmit=async e=>{
       e.preventDefault();
@@ -126,6 +146,7 @@
         def_nome: def_nome.value.trim(),
         def_cognome: def_cognome.value.trim(),
         def_data: def_data.value,
+        // NOTA: la ricorrenza è derivata da def_data e non viene inviata al backend
         giorni_prima: parseInt(giorni_prima.value||"0"),
         oggetto: oggetto.value.trim(),
         corpo: corpo.value.trim()
@@ -136,6 +157,8 @@
         if(res.status===201||res.status===200){
           document.getElementById("status").textContent="✅ Salvato con successo";
           form.reset();
+          // dopo il reset, svuota anche la ricorrenza
+          document.getElementById('ricorrenza').value='';
           return;
         }
         if(res.status===409){
@@ -147,6 +170,7 @@
               if(put.ok){
                 document.getElementById("status").textContent="✅ Sovrascritto con successo";
                 form.reset();
+                document.getElementById('ricorrenza').value='';
                 return;
               }
             }
@@ -162,4 +186,5 @@
   </script>
 </body>
 </html>
+
 
