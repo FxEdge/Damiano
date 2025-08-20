@@ -116,21 +116,21 @@
     document.getElementById("btnHome").onclick=()=>location.href="home.html";
 
     // === Ricorrenza auto-calcolata (GG/MM) a partire da def_data ===
-    (function(){
-      const dateEl = document.getElementById('def_data');
-      const ricEl  = document.getElementById('ricorrenza');
-      const pad = n => String(n).padStart(2,'0');
-      function updateRicorrenza(){
-        const v = dateEl.value; // YYYY-MM-DD
-        if(!v){ ricEl.value = ''; return; }
-        const [y,m,d] = v.split('-').map(Number);
-        if(!y || !m || !d){ ricEl.value=''; return; }
-        ricEl.value = `${pad(d)}/${pad(m)}`;
-      }
-      dateEl.addEventListener('change', updateRicorrenza);
-      dateEl.addEventListener('input',  updateRicorrenza);
-      updateRicorrenza();
-    })();
+ (function(){
+  const dateEl = document.getElementById('def_data');
+  const ricEl  = document.getElementById('ricorrenza');
+  const pad = n => String(n).padStart(2,'0');
+  function updateRicorrenza(){
+    const v = dateEl.value; // YYYY-MM-DD
+    if(!v){ ricEl.value = ''; return; }
+    const [y,m,d] = v.split('-').map(Number);
+    if(!y || !m || !d){ ricEl.value=''; return; }
+    ricEl.value = `${pad(d)}/${pad(m)}/${y}`; // GG/MM/AAAA
+  }
+  dateEl.addEventListener('change', updateRicorrenza);
+  dateEl.addEventListener('input',  updateRicorrenza);
+  updateRicorrenza();
+})();
 
     const form=document.getElementById("formNew");
     form.onsubmit=async e=>{
