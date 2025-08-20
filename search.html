@@ -45,7 +45,8 @@
               <th>Cognome</th>
               <th>Email</th>
               <th>Telefono</th>
-              <th>Defunto</th>
+              <th>Defunto</th><th>Data decesso</th>
+              <th>Data ricorrenza</th>
             </tr>
           </thead>
           <tbody><!-- rows --></tbody>
@@ -92,6 +93,8 @@
           <td>${r.email || ''}</td>
           <td>${(r.telefono_prefisso||'') + (r.telefono_numero? ' '+r.telefono_numero : '')}</td>
           <td>${[r.def_nome||'', r.def_cognome||''].filter(Boolean).join(' ')}</td>
+          <td>${r.def_data || ''}</td>
+          <td>${r.prossima_ricorrenza || ''}</td>
         `;
           tr.ondblclick = () => {
             if (confirm('Vuoi modificare questo contatto?')) {
