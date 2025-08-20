@@ -4,16 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Damiano – Dashboard</title>
-  <!-- Favicon: usa PNG esistente -->
   <link rel="icon" href="assets/logo.png">
   <style>
     :root{--bg:#f3f4f6;--surface:#fff;--text:#111827;--muted:#6b7280;--border:#e5e7eb;--shadow:0 6px 18px rgba(0,0,0,.06);--primary:#2563eb}
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial}
     .wrap{width:min(1100px,92%);margin-inline:auto;padding:20px}
     header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
     .brand{display:flex;align-items:center;gap:10px}
-    /* Icona piccola nel brand */
     .logo{width:36px;height:36px}
     h1{margin:0;font-size:1.5rem}
     .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
@@ -24,29 +21,33 @@
     .muted{color:var(--muted)}
     .report{display:grid;gap:8px}
     .report .box{border:1px dashed var(--border);border-radius:12px;padding:10px}
+    /* Top logo (header hero) */
+    .top-logo {
+  text-align: center;
+  margin: 20px 0;
+}
+   .top-logo img {
+  max-width: 140px;
+  height: auto;
+  display: inline-block;
+}
 
-    /* Top logo (grande, centrato) */
-    .top-logo { text-align:center; margin:20px 0 }
-    .top-logo img { max-width:140px; height:auto; display:inline-block }
-
-    /* Azioni in colonna a tutta larghezza */
+    /* === NUOVO: metti i tre bottoni in colonna e a tutta larghezza === */
     .actions-stack{display:flex;flex-direction:column;gap:12px;margin-top:8px}
     .actions-stack .btn-primary{width:100%;text-align:left}
     .actions-stack .btn-primary:hover{filter:brightness(0.95)}
   </style>
 </head>
 <body>
-
-  <!-- LOGO grande al centro -->
-  <div class="top-logo">
-    <img src="assets/logo.png" alt="Damiano Logo">
-  </div>
-
+<!-- LOGO -->
+<div class="top-logo">
+  <img src="assets/logo.png" alt="Damiano Logo">
+</div>
+  
   <div class="wrap">
     <header>
       <div class="brand">
-        <!-- Icona piccola: usa PNG esistente -->
-        <img src="assets/logo.png" class="logo" alt="Damiano">
+        <img src="assets/logo.svg" class="logo" alt="Damiano">
         <div>
           <div class="muted" id="today"></div>
           <h1>Dashboard</h1>
@@ -61,32 +62,32 @@
         <h2>Sezione Dati</h2>
         <p class="muted">Gestisci le schede clienti.</p>
 
+        <!-- SOLO QUESTO BLOCCO È CAMBIATO -->
         <div class="actions-stack">
           <a href="new.html" class="btn btn-primary">➕ Nuovo inserimento</a>
           <a href="search.html?mode=edit" class="btn btn-primary">✏️ Modifica inserimento</a>
           <a href="visualizza.html" class="btn btn-primary">👁️ Visualizzazione inserimento</a>
         </div>
       </section>
+       <!-- ✅ NUOVA CARD -->
+  <section class="card">
+    <h2>Sezione Config</h2>
+    <p>Impostazioni dei testi email.</p>
+    <a class="btn btn-primary" href="/dati-email.html">📧 Dati Email</a>
+  </section>
+      
+          <!-- Sezione Report -->
+<section class="card">
+  <h2>Sezione Report</h2>
+  <p class="muted">Statistiche e analisi.</p>
+  <div class="report">
+    <a href="report1.html" class="btn btn-primary">📧 Mail inviate mese</a>
+    <a href="report2.html" class="btn">📆 Da inviare mese prossimo</a>
+    <a href="report3.html" class="btn">📈 Report 3</a>
+    <a href="log-invii.html" class="btn btn-primary">📬 Log invii</a>
+  </div>
+</section>
 
-      <!-- Sezione Config -->
-      <section class="card">
-        <h2>Sezione Config</h2>
-        <p>Impostazioni dei testi email.</p>
-        <!-- Link relativo (no slash iniziale) -->
-        <a class="btn btn-primary" href="dati-email.html">📧 Dati Email</a>
-      </section>
-
-      <!-- Sezione Report -->
-      <section class="card">
-        <h2>Sezione Report</h2>
-        <p class="muted">Statistiche e analisi.</p>
-        <div class="report">
-          <a href="report1.html" class="btn btn-primary">📧 Mail inviate mese</a>
-          <a href="report2.html" class="btn">📆 Da inviare mese prossimo</a>
-          <a href="report3.html" class="btn">📈 Report 3</a>
-          <a href="log-invii.html" class="btn btn-primary">📬 Log invii</a>
-        </div>
-      </section>
     </div>
 
     <p class="muted" style="margin-top:14px">API: <code id="apiInUso"></code></p>
@@ -99,8 +100,7 @@
     const DEFAULT_API = 'https://damiano-backend-ancz.onrender.com';
     const API = localStorage.getItem('damiano_api') || DEFAULT_API;
 
-    document.getElementById('today').textContent =
-      new Date().toLocaleString('it-IT', {dateStyle:'full', timeStyle:'short'});
+    document.getElementById('today').textContent = new Date().toLocaleString('it-IT', {dateStyle:'full', timeStyle:'short'});
     document.getElementById('apiInUso').textContent = API;
 
     // Logout
@@ -110,10 +110,12 @@
       location.replace('index.html');
     });
 
-    // Stub report (se non hai questi elementi puoi rimuovere queste righe)
-    // document.getElementById('rep1').textContent = '0';
-    // document.getElementById('rep2').textContent = '0';
-    // document.getElementById('rep3').textContent = '—';
+    // Stub report
+    document.getElementById('rep1').textContent = '0';
+    document.getElementById('rep2').textContent = '0';
+    document.getElementById('rep3').textContent = '—';
   </script>
 </body>
 </html>
+
+
