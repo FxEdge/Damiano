@@ -53,6 +53,7 @@
               <th>Telefono</th>
               <th>Defunto</th>
               <th>Data</th>
+              <th>Data ricorrenza</th>
               <th>Giorni prima</th>
               <th>Data inserimento</th><!-- 🆕 -->
             </tr>
@@ -122,6 +123,7 @@
           <td>${(r.telefono_prefisso||'') + (r.telefono_numero? ' '+r.telefono_numero : '')}</td>
           <td>${[r.def_nome||'', r.def_cognome||''].filter(Boolean).join(' ')}</td>
           <td>${r.def_data || ''}</td>
+          <td>${r.prossima_ricorrenza || ''}</td>
           <td>${(r.giorni_prima ?? '')}</td>
           <td>${created}</td>
         `;
@@ -144,7 +146,7 @@
 
     // ==== Export CSV ====
     function exportCSVFromDOM(){
-      const headers = ["Cognome","Nome","Email","Telefono","Defunto","Data","Giorni prima","Data inserimento"];
+      const headers = ["Cognome","Nome","Email","Telefono","Defunto","Data decesso","Data ricorrenza","Giorni prima"];
       const lines = [headers.join(",")];
 
       const trs = document.querySelectorAll('#tbl tbody tr');
