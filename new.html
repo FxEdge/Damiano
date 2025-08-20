@@ -19,18 +19,9 @@
     .ok{color:#065f46}.bad{color:#b91c1c}
     .err{font-size:12px;color:#b91c1c;display:none}
     input[readonly]{background:#f8fafc;cursor:not-allowed}
-    /* === Aggiunta per il logo === */
-    .logo{ text-align:center; margin:20px 0; }
-    .logo img{ max-width:140px; height:auto; }
   </style>
 </head>
 <body>
-
-  <!-- === Aggiunta: blocco logo === -->
-  <div class="logo">
-    <img src="assets/logo.png" alt="Damiano Logo">
-  </div>
-
   <div class="container">
     <h1>Nuovo Inserimento</h1>
     <p class="muted">Compila i campi. Nome e Cognome sono obbligatori.</p>
@@ -48,7 +39,180 @@
       <label>Telefono</label>
       <div class="row">
         <select id="prefisso" style="max-width:150px">
-          <option value="+39" selected>
+          <option value="+39" selected>🇮🇹 +39 Italia</option>
+          <option value="+33">🇫🇷 +33 Francia</option>
+          <option value="+34">🇪🇸 +34 Spagna</option>
+          <option value="+41">🇨🇭 +41 Svizzera</option>
+          <option value="+43">🇦🇹 +43 Austria</option>
+          <option value="+49">🇩🇪 +49 Germania</option>
+          <option value="+44">🇬🇧 +44 UK</option>
+          <option value="+31">🇳🇱 +31 Paesi Bassi</option>
+          <option value="+32">🇧🇪 +32 Belgio</option>
+          <option value="+351">🇵🇹 +351 Portogallo</option>
+          <option value="+30">🇬🇷 +30 Grecia</option>
+          <option value="+46">🇸🇪 +46 Svezia</option>
+          <option value="+47">🇳🇴 +47 Norvegia</option>
+          <option value="+45">🇩🇰 +45 Danimarca</option>
+          <option value="+420">🇨🇿 +420 Rep. Ceca</option>
+          <option value="+48">🇵🇱 +48 Polonia</option>
+          <option value="+352">🇱🇺 +352 Lussemburgo</option>
+          <option value="+1">🇺🇸 +1 USA</option>
+          <option value="+1">🇨🇦 +1 Canada</option>
+          <option value="+55">🇧🇷 +55 Brasile</option>
+          <option value="+61">🇦🇺 +61 Australia</option>
+          <option value="+81">🇯🇵 +81 Giappone</option>
+          <option value="+86">🇨🇳 +86 Cina</option>
+        </select>
+        <input id="telefono" placeholder="Numero" inputmode="tel"/>
+      </div>
+
+      <label for="email">Email</label>
+      <input id="email" type="email" placeholder="nome@dominio.it"/>
+      <div id="err-email" class="err">Inserisci un indirizzo email valido</div>
+
+      <!-- Dati defunto -->
+      <label for="def_nome">Nome Defunto</label>
+      <input id="def_nome" />
+
+      <label for="def_cognome">Cognome Defunto</label>
+      <input id="def_cognome" />
+
+      <label>Data Decesso / Ricorrenza</label>
+      <div class="row">
+        <div class="field">
+          <label for="def_data">Data Decesso</label>
+          <input id="def_data" type="date" />
+        </div>
+        <div class="field" style="max-width:220px">
+          <label for="ricorrenza">Prossima Ricorrenza</label>
+          <input id="ricorrenza" type="text" placeholder="gg/mm/aaaa" readonly aria-readonly="true" title="Data decesso + 1 anno" />
+        </div>
+      </div>
+
+      <!-- Invio mail -->
+      <label for="giorni_prima">Giorni prima dell’invio</label>
+      <input id="giorni_prima" type="number" min="0" placeholder="solo numeri"/>
+      <div id="err-giorni" class="err">Inserisci solo numeri &gt;= 0</div>
+
+      <label for="oggetto">Oggetto della mail</label>
+      <div class="row">
+        <input id="oggetto" value="In memoria di {{NOME}} {{COGNOME}}" readonly />
+        <button type="button" id="btnOggetto" class="btn">Cambia</button>
+      </div>
+
+      <label for="corpo">Corpo del messaggio</label>
+      <div class="row">
+        <textarea id="corpo" readonly>Gentile {{NOME}} {{COGNOME}},&#10;ti ricordiamo con affetto in questa ricorrenza.&#10;—</textarea>
+        <button type="button" id="btnCorpo" class="btn">Cambia</button>
+      </div>
+
+      <!-- Bottoni -->
+      <div class="row" style="margin-top:16px">
+        <button class="btn btn-primary" type="submit">💾 Salva</button>
+        <button class="btn" type="button" id="btnHome">🏠 Home</button>
+      </div>
+      <p id="status" class="status"></p>
+    </form>
+  </div>
+
+  <script>
+    const API = "https://damiano-backend-ancz.onrender.com"; // aggiorna con il tuo backend
+
+    // Oggetto editabile/readonly
+    function toggleEditable(id, btnId){
+      const input = document.getElementById(id);
+      const btn = document.getElementById(btnId);
+      if(input.readOnly){
+        input.readOnly = false; btn.textContent="Salva";
+      } else {
+        input.readOnly = true; btn.textContent="Cambia";
+      }
+    }
+    document.getElementById("btnOggetto").onclick=()=>toggleEditable("oggetto","btnOggetto");
+    document.getElementById("btnCorpo").onclick=()=>toggleEditable("corpo","btnCorpo");
+
+    document.getElementById("btnHome").onclick=()=>location.href="home.html";
+
+    // === Ricorrenza auto-calcolata (data decesso + 1 anno) ===
+    (function(){
+      const dateEl = document.getElementById('def_data');
+      const ricEl  = document.getElementById('ricorrenza');
+      const pad = n => String(n).padStart(2,'0');
+
+      function updateRicorrenza(){
+        const v = dateEl.value; // YYYY-MM-DD
+        if(!v){ ricEl.value = ''; return; }
+        const [y,m,d] = v.split('-').map(Number);
+        if(!y || !m || !d){ ricEl.value=''; return; }
+
+        const ricDate = new Date(y + 1, m - 1, d); // +1 anno
+        const gg = pad(ricDate.getDate());
+        const mm = pad(ricDate.getMonth() + 1);
+        const aa = ricDate.getFullYear();
+
+        ricEl.value = `${gg}/${mm}/${aa}`;
+      }
+
+      dateEl.addEventListener('change', updateRicorrenza);
+      dateEl.addEventListener('input',  updateRicorrenza);
+      updateRicorrenza();
+    })();
+
+    const form=document.getElementById("formNew");
+    form.onsubmit=async e=>{
+      e.preventDefault();
+      document.getElementById("status").textContent="⏳ Salvataggio…";
+
+      const rec={
+        nome: nome.value.trim(),
+        cognome: cognome.value.trim(),
+        telefono_prefisso: prefisso.value,
+        telefono_numero: telefono.value.trim(),
+        email: email.value.trim(),
+        def_nome: def_nome.value.trim(),
+        def_cognome: def_cognome.value.trim(),
+        def_data: def_data.value,
+        // NOTA: la ricorrenza è derivata da def_data e non viene inviata al backend
+        giorni_prima: parseInt(giorni_prima.value||"0"),
+        oggetto: oggetto.value.trim(),
+        corpo: corpo.value.trim()
+      };
+
+      try{
+        let res=await fetch(API+"/records",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(rec)});
+        if(res.status===201||res.status===200){
+          document.getElementById("status").textContent="✅ Salvato con successo";
+          form.reset();
+          document.getElementById('ricorrenza').value='';
+          return;
+        }
+        if(res.status===409){
+          if(confirm("Contatto duplicato. Vuoi sovrascrivere?")){
+            const data=await res.json();
+            const id=data?.id; // se backend manda id, lo usiamo
+            if(id){
+              let put=await fetch(API+"/records/"+id,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(rec)});
+              if(put.ok){
+                document.getElementById("status").textContent="✅ Sovrascritto con successo";
+                form.reset();
+                document.getElementById('ricorrenza').value='';
+                return;
+              }
+            }
+          }
+          document.getElementById("status").textContent="❌ Contatto non salvato";
+          return;
+        }
+        throw new Error(await res.text());
+      }catch(err){
+        document.getElementById("status").textContent="❌ Errore: "+err.message;
+      }
+    };
+  </script>
+</body>
+</html>
+
+
 
 
 
