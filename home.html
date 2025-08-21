@@ -22,8 +22,8 @@
     .report{display:grid;gap:8px}
     .report .box{border:1px dashed var(--border);border-radius:12px;padding:10px}
      * Logo grande al centro */
-    .top-logo{text-align:center;margin:20px 0}
-    .top-logo img{max-width:140px;height:auto;display:inline-block}
+    top-logo {display: flex;justify-content: center; /* centro orizzontale */align-items: center;/* centro verticale (se vuoi) */margin: 20px 0} 
+    .top-logo img {max-width: 140px;height: auto}
     
     /* === NUOVO: metti i tre bottoni in colonna e a tutta larghezza === */
     .actions-stack{display:flex;flex-direction:column;gap:12px;margin-top:8px}
@@ -109,5 +109,6 @@
   </script>
 </body>
 </html>
+
 
 
