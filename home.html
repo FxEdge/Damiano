@@ -26,14 +26,15 @@
     .top-logo{display:flex;justify-content:center;align-items:center;margin:20px 0}
     .top-logo img{max-width:140px;height:auto}
 
-    /* Bottone Sviluppatore in basso a sinistra */
-    #btnDev{
+    /* Bottone Sviluppatore in basso a sinistra (nuova classe .fab, non tocchiamo #btnDev esistente) */
+    .fab{
       position:fixed;left:16px;bottom:16px;
       padding:10px 14px;border:0;border-radius:999px;
       background:#2563eb;color:#fff;cursor:pointer;
       box-shadow:0 6px 20px rgba(0,0,0,.18);z-index:9998;
+      text-decoration:none;display:inline-flex;align-items:center;gap:8px
     }
-    #btnDev:hover{filter:brightness(1.08)}
+    .fab:hover{filter:brightness(1.08)}
 
     /* Bottoni in colonna */
     .actions-stack{display:flex;flex-direction:column;gap:12px;margin-top:8px}
@@ -135,17 +136,10 @@
       localStorage.removeItem('damiano_user');
       location.replace('index.html');
     });
-
-    // Stub report (se usi questi id da qualche parte)
-    // document.getElementById('rep1').textContent = '0';
-    // document.getElementById('rep2').textContent = '0';
-    // document.getElementById('rep3').textContent = '—';
   </script>
   
-<a id="devLink" class="fab" href="/sviluppatore.html"
-   onclick="window.location='/sviluppatore.html'; return false;">
-  ⚙️ Sviluppatore
-</a>
+  <!-- NUOVO: link fisso alla pagina Sviluppatore (non usa l'overlay) -->
+  <a id="openDev" class="fab" href="/sviluppatore.html">⚙️ Sviluppatore</a>
 
   <!-- ================== BLOCCO DEV ================== -->
   <!-- Login “admin/admin” -->
@@ -193,7 +187,7 @@
     </div>
   </div>
 
-  <!-- Script DEV -->
+  <!-- Script DEV (invariato) -->
   <script>
     (function(){
       const $ = (id)=>document.getElementById(id);
@@ -201,7 +195,7 @@
       const DEFAULT_BASE = (typeof API !== "undefined" && API) ? API : "https://damiano-backend-ancz.onrender.com";
 
       // elementi
-      const btnDev = $("btnDev");
+      const btnDev = $("btnDev"); // rimane per compatibilità: non esiste in questa pagina
       const overlay = $("devOverlay");
       const status  = $("devStatus");
       const tbody   = $("devBody");
@@ -222,7 +216,7 @@
 
       function setStatus(msg, ok){ status.className = "dev-status "+(ok?"ok":"err"); status.textContent = msg; }
 
-      // click su "Sviluppatore"
+      // click su "Sviluppatore" (vecchio overlay) — non si attiva perché non c'è #btnDev
       btnDev?.addEventListener("click", ()=>{
         if(localStorage.getItem(LS_AUTH)==="1"){ openOverlay(); }
         else { openLogin(); }
@@ -313,8 +307,19 @@
   </script>
   <!-- ================== /BLOCCO DEV ================== -->
 
+  <!-- Forza la navigazione al file sviluppatore anche se qualche handler blocca il click -->
+  <script>
+    document.getElementById('openDev')?.addEventListener('click', function(e){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      window.location.href = '/sviluppatore.html';
+    });
+  </script>
+
 </body>
 </html>
+
+
 
 
 
