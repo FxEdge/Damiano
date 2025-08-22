@@ -28,6 +28,7 @@
     .badge { font-size:12px; padding:2px 8px; border-radius:999px; background:#eef2ff; color:#3730a3; }
     #status { margin-top:10px; font-size:14px; }
     .ok { color:#15803d; } .err{ color:#b91c1c; }
+
     .storage-box { border:1px dashed #e5e7eb; border-radius:12px; padding:12px; background:#fafbff; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   </style>
@@ -37,7 +38,7 @@
     <div class="card">
       <h1>⚙️ Area Sviluppatore</h1>
 
-      <!-- Connessione backend + azioni -->
+      <!-- Connessione backend -->
       <div class="row">
         <div>
           <label>Backend URL</label><br />
@@ -51,25 +52,27 @@
           <br />
           <button id="saveBtn">Salva</button>
           <button class="ghost" id="refreshBtn">Aggiorna contatti</button>
-          <!-- 1) INVIO EMAIL MANUALE -->
-          <button class="ghost" id="btnManualEmail">Invia email manualmente</button>
-          <!-- 2) STORAGE -->
-          <button class="ghost" id="btnReadStorage">📁 Leggi percorso</button>
-          <button id="btnSetStorage">✏️ Imposta percorso…</button>
         </div>
       </div>
 
       <div id="status"></div>
 
-      <!-- Info STORAGE (si aggiorna con “Leggi/Imposta”) -->
-      <div class="storage-box" style="margin-top:10px">
-        <div><small class="mono">data_dir: <span id="curDir">—</span></small></div>
-        <div style="margin-top:6px">
-          <small class="mono">files: <span id="curFiles">—</span></small>
+      <!-- Pannello STORAGE -->
+      <h2>📁 Percorso di salvataggio</h2>
+      <div class="storage-box">
+        <div class="row" style="margin:0 0 8px">
+          <button id="btnReadStorage" class="ghost">📁 Leggi percorso</button>
+          <button id="btnSetStorage">✏️ Imposta percorso…</button>
+        </div>
+        <div id="storageInfo">
+          <div><small class="mono">data_dir: <span id="curDir">—</span></small></div>
+          <div style="margin-top:6px">
+            <small class="mono">files: <span id="curFiles">—</span></small>
+          </div>
         </div>
         <div style="margin-top:8px;color:#6b7280;font-size:13px">
-          Suggerimenti: su Render usare percorsi <em>del server</em>, es. <span class="mono">/tmp/damiano-data</span> (non persistente)
-          oppure una cartella persistente, es. <span class="mono">/var/damiano-data</span>.
+          Suggerimenti: su Render usare percorsi <em>del server</em>, es. <span class="mono">/tmp/damiano-data</span> (non persistente) oppure un
+          disco montato, es. <span class="mono">/var/damiano-data</span> (persistente).
         </div>
       </div>
 
@@ -100,19 +103,18 @@
     el("baseUrl").value = localStorage.getItem(LS_BASE) || "https://damiano-backend-ancz.onrender.com";
     el("xSecret").value = localStorage.getItem(LS_SECRET) || "";
 
-    const getBase = () => el("baseUrl").value.trim().replace(/\/+$/, '');
+    const getBase = () => el("baseUrl").value.trim().replace(/\/+$/,'');
     const getSecret = () => el("xSecret").value;
 
-    // Bottoni
     el("saveBtn").addEventListener("click", () => {
       localStorage.setItem(LS_BASE, getBase());
       localStorage.setItem(LS_SECRET, getSecret());
       setStatus("Impostazioni salvate ✔️", true);
       loadRecords();
-      // non forzo la lettura storage; la fai con il tasto dedicato
+      readStorage();
     });
+
     el("refreshBtn").addEventListener("click", () => loadRecords());
-    el("btnManualEmail").addEventListener("click", () => sendEmailManual());
     el("btnReadStorage").addEventListener("click", () => readStorage());
     el("btnSetStorage").addEventListener("click", () => setStorage());
 
@@ -121,64 +123,41 @@
       el("status").textContent = msg;
     }
 
-    // ===== 1) INVIO EMAIL MANUALE =====
-    async function sendEmailManual(){
-      const base = getBase(); if(!base){ setStatus("Imposta il Backend URL", false); return; }
-      const secret = getSecret(); if(!secret){ setStatus("Inserisci X-Secret", false); return; }
-
-      const to = prompt("A chi vuoi inviare? (uno o più indirizzi separati da virgola/;)"); if(to === null) return;
-      const subject = prompt("Oggetto dell'email:"); if(subject === null) return;
-      const message = prompt("Messaggio (testo semplice):"); if(message === null) return;
-
+    // ===== STORAGE =====
+    async function readStorage(){
+      const base = getBase();
+      if(!base){ setStatus("Imposta il Backend URL", false); return; }
       try{
-        const res = await fetch(`${base}/send-email`, {
-          method: "POST",
-          headers: {
-            "Content-Type":"application/json",
-            "X-Secret": secret
-          },
-          body: JSON.stringify({ to, subject, message })
+        const res = await fetch(`${base}/admin/storage`, {
+          headers: { "X-Secret": getSecret() }
         });
-        const data = await res.json().catch(()=>({}));
-        if(res.ok && data.ok){
-          setStatus(`✅ Inviate ${data.sent?.length||1} email`, true);
-        }else{
-          setStatus("❌ Errore invio: " + (data.detail || JSON.stringify(data)), false);
+        if(!res.ok){
+          const err = await res.json().catch(()=>({detail: res.statusText}));
+          setStatus("Errore lettura storage: " + (err.detail||res.status), false);
+          return;
         }
+        const data = await res.json();
+        renderStorage(data);
+        setStatus("Percorso letto correttamente", true);
       }catch(e){
-        setStatus("❌ Errore rete (invio manuale)", false);
+        setStatus("Errore rete (lettura storage)", false);
       }
     }
 
-    // ===== 2) STORAGE =====
     function renderStorage(obj){
       el("curDir").textContent = obj?.data_dir || "—";
       const files = Array.isArray(obj?.files) ? obj.files : [];
       el("curFiles").textContent = files.length ? files.join(", ") : "—";
     }
 
-    async function readStorage(){
-      const base = getBase(); if(!base){ setStatus("Imposta il Backend URL", false); return; }
-      try{
-        const res = await fetch(`${base}/admin/storage`, { headers: { "X-Secret": getSecret() }});
-        const data = await res.json().catch(()=>({}));
-        if(res.ok){
-          renderStorage(data);
-          setStatus("Percorso letto correttamente", true);
-        }else{
-          setStatus("Errore lettura storage: " + (data.detail || res.status), false);
-        }
-      }catch(e){
-        setStatus("Errore rete (lettura storage)", false);
-      }
-    }
-
     async function setStorage(){
-      const base = getBase(); if(!base){ setStatus("Imposta il Backend URL", false); return; }
-      const secret = getSecret(); if(!secret){ setStatus("Inserisci X-Secret", false); return; }
+      const base = getBase();
+      if(!base){ setStatus("Imposta il Backend URL", false); return; }
+      const secret = getSecret();
+      if(!secret){ setStatus("Inserisci X-Secret", false); return; }
 
       const path = prompt("Inserisci NUOVO percorso sul server (es. /tmp/damiano-data o /var/damiano-data):");
-      if(path === null) return;
+      if(path === null) return; // annullato
       const body = { path: String(path||"").trim() };
       if(!body.path){ setStatus("Percorso non valido", false); return; }
 
@@ -186,12 +165,12 @@
         const res = await fetch(`${base}/admin/storage`, {
           method: "PUT",
           headers: {
-            "Content-Type":"application/json",
+            "Content-Type": "application/json",
             "X-Secret": secret
           },
           body: JSON.stringify(body)
         });
-        const data = await res.json().catch(()=>({}));
+        const data = await res.json();
         if(res.ok && data.ok){
           renderStorage(data);
           setStatus(`Percorso impostato: ${data.data_dir}`, true);
@@ -212,7 +191,7 @@
         const res = await fetch(`${base}/records`);
         const data = await res.json();
         renderTable(data || []);
-        setStatus(`Caricati ${(data||[]).length} contatti`, true);
+        setStatus(`Caricati ${ (data||[]).length } contatti`, true);
       }catch(e){
         el("tbody").innerHTML = `<tr><td colspan="4"><small>Errore caricamento contatti</small></td></tr>`;
         setStatus("Errore di rete nel recupero dei contatti", false);
@@ -245,6 +224,7 @@
       const base = getBase();
       const secret = getSecret();
       if(!secret){ setStatus("Inserisci X-Secret", false); return; }
+
       if(!confirm("Vuoi inviare subito l'email per questo contatto?")) return;
 
       try{
@@ -252,7 +232,7 @@
           method: "POST",
           headers: { "X-Secret": secret }
         });
-        const data = await res.json().catch(()=>({}));
+        const data = await res.json();
         if(res.ok && data.ok){
           setStatus("✅ Email inviata correttamente", true);
         }else{
@@ -263,11 +243,13 @@
       }
     }
 
-    // Avvio
+    // Auto-load all'avvio
     loadRecords();
+    readStorage();
   </script>
 </body>
 </html>
+
 
 
 
