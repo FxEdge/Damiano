@@ -2,261 +2,322 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Area Sviluppatore – Damiano</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Damiano – Dashboard</title>
+  <link rel="icon" href="assets/logo.svg">
   <style>
-    :root { --primary:#2563eb; --bg:#f6f7fb; --card:#fff; --muted:#6b7280; }
-    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background:var(--bg); }
-    .wrap { max-width: 1000px; margin: 40px auto; padding: 0 16px; }
-    .card { background:var(--card); border-radius:16px; box-shadow: 0 8px 30px rgba(0,0,0,.06); padding:20px; }
-    h1 { margin:0 0 16px; font-size: 24px; }
-    h2 { margin:20px 0 10px; font-size: 18px; }
-    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin: 12px 0 18px; }
-    label { font-size:14px; color:var(--muted); }
-    input[type="text"], input[type="password"], input[type="url"] {
-      padding:10px 12px; border:1px solid #e5e7eb; border-radius:10px; min-width: 260px;
-    }
-    button {
-      padding:10px 14px; border:0; border-radius:10px; background:var(--primary); color:#fff; cursor:pointer;
-    }
-    button.ghost { background:#e5e7eb; color:#111827; }
-    table { width:100%; border-collapse:collapse; margin-top:10px; }
-    th, td { padding:10px 8px; border-bottom:1px solid #eee; text-align:left; font-size:14px; }
-    th { color:#111827; }
-    td small { color:var(--muted); }
-    .right { text-align:right; }
-    .badge { font-size:12px; padding:2px 8px; border-radius:999px; background:#eef2ff; color:#3730a3; }
-    #status { margin-top:10px; font-size:14px; }
-    .ok { color:#15803d; } .err{ color:#b91c1c; }
+    :root{--bg:#f3f4f6;--surface:#fff;--text:#111827;--muted:#6b7280;--border:#e5e7eb;--shadow:0 6px 18px rgba(0,0,0,.06);--primary:#2563eb}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial}
+    .wrap{width:min(1100px,92%);margin-inline:auto;padding:20px}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .brand{display:flex;align-items:center;gap:10px}
+    h1{margin:0;font-size:1.5rem}
+    .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:16px}
+    .card h2{margin:0 0 10px;font-size:1.1rem}
+    .btn{display:inline-block;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:#fff;cursor:pointer;margin:6px 6px 0 0}
+    .btn-primary{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none}
+    .muted{color:var(--muted)}
+    .report{display:grid;gap:8px}
+    .report .box{border:1px dashed var(--border);border-radius:12px;padding:10px}
 
-    .storage-box { border:1px dashed #e5e7eb; border-radius:12px; padding:12px; background:#fafbff; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    /* Logo grande al centro */
+    .top-logo{display:flex;justify-content:center;align-items:center;margin:20px 0}
+    .top-logo img{max-width:140px;height:auto}
+
+    /* Bottone Sviluppatore in basso a sinistra (nuova classe .fab, non tocchiamo #btnDev esistente) */
+    .fab{
+      position:fixed;left:16px;bottom:16px;
+      padding:10px 14px;border:0;border-radius:999px;
+      background:#2563eb;color:#fff;cursor:pointer;
+      box-shadow:0 6px 20px rgba(0,0,0,.18);z-index:9998;
+      text-decoration:none;display:inline-flex;align-items:center;gap:8px
+    }
+    .fab:hover{filter:brightness(1.08)}
+
+    /* Bottoni in colonna */
+    .actions-stack{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+    .actions-stack .btn-primary{width:100%;text-align:left}
+    .actions-stack .btn-primary:hover{filter:brightness(0.95)}
+
+    /* ================== STILI DEV ================== */
+    .dev-overlay{position:fixed;inset:0;background:#0b102214;backdrop-filter:blur(3px);display:none;z-index:9999}
+    .dev-card{max-width:1000px;margin:40px auto;background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);padding:18px}
+    .dev-h1{margin:0 0 10px;font:600 22px system-ui}
+    .dev-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0 14px}
+    .dev-input{padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px;min-width:260px}
+    .dev-btn{padding:10px 14px;border:0;border-radius:10px;background:#2563eb;color:#fff;cursor:pointer}
+    .dev-btn.ghost{background:#e5e7eb;color:#111827}
+    .dev-right{margin-left:auto}
+    .dev-status{min-height:22px;font:14px system-ui;margin-top:6px}
+    .ok{color:#15803d}.err{color:#b91c1c}
+    table.dev{width:100%;border-collapse:collapse;margin-top:8px}
+    table.dev th,table.dev td{padding:9px 8px;border-bottom:1px solid #eee;text-align:left;font:14px system-ui}
+    .dev-badge{font:12px system-ui;background:#eef2ff;color:#3730a3;border-radius:999px;padding:2px 8px}
+    .dev-dim{color:#6b7280}
+    /* login modal */
+    .dev-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#0007;z-index:10000}
+    .dev-modal .box{background:#fff;padding:20px;border-radius:12px;min-width:320px;box-shadow:0 10px 30px rgba(0,0,0,.15)}
+    .dev-modal h3{margin:0 0 8px;font:600 18px system-ui}
+    .dev-modal .row{display:flex;flex-direction:column;gap:8px;margin:10px 0}
+    .dev-modal input{padding:10px;border:1px solid #e5e7eb;border-radius:10px}
+    /* ================== /STILI DEV ================== */
   </style>
 </head>
+
 <body>
+  <!-- LOGO CENTRALE -->
+  <div class="top-logo">
+    <img src="assets/logo.png" alt="Damiano Logo">
+  </div>
+
   <div class="wrap">
-    <div class="card">
-      <!-- Header con Torna Home -->
-      <div class="row" style="justify-content:space-between; align-items:center; margin:0 0 6px">
-        <h1 style="margin:0">⚙️ Area Sviluppatore</h1>
-        <button id="btnBack" class="ghost" title="Torna alla Dashboard">← Torna Home</button>
+    <header>
+      <div class="brand">
+        <div>
+          <div class="muted" id="today"></div>
+          <h1>Dashboard</h1>
+        </div>
       </div>
+      <button id="btnLogout" class="btn">Esci</button>
+    </header>
 
-      <!-- Connessione backend -->
+    <div class="grid">
+      <!-- Sezione Dati -->
+      <section class="card">
+        <h2>Sezione Dati</h2>
+        <p class="muted">Gestisci le schede clienti.</p>
+        <div class="actions-stack">
+          <a href="new.html" class="btn btn-primary">➕ Nuovo inserimento</a>
+          <a href="search.html?mode=edit" class="btn btn-primary">✏️ Modifica inserimento</a>
+          <a href="visualizza.html" class="btn btn-primary">👁️ Visualizzazione inserimento</a>
+        </div>
+      </section>
+
+      <!-- Sezione Config -->
+      <section class="card">
+        <h2>Sezione Config</h2>
+        <p>Impostazioni dei testi email.</p>
+        <a class="btn btn-primary" href="/dati-email.html">📧 Dati Email</a>
+      </section>
+
+      <!-- Sezione Report -->
+      <section class="card">
+        <h2>Sezione Report</h2>
+        <p class="muted">Statistiche e analisi.</p>
+        <div class="report">
+          <a href="report1.html" class="btn btn-primary">📧 Mail inviate mese</a>
+          <a href="report2.html" class="btn">📆 Da inviare mese prossimo</a>
+          <a href="report3.html" class="btn">📈 Report 3</a>
+          <a href="log-invii.html" class="btn btn-primary">📬 Log invii</a>
+        </div>
+      </section>
+    </div>
+
+    <p class="muted" style="margin-top:14px">API: <code id="apiInUso"></code></p>
+  </div>
+
+  <!-- Script della pagina -->
+  <script>
+    // Guard: serve token
+    if (!localStorage.getItem('damiano_token')) { location.replace('index.html'); }
+
+    const DEFAULT_API = 'https://damiano-backend-ancz.onrender.com';
+    const API = localStorage.getItem('damiano_api') || DEFAULT_API;
+
+    document.getElementById('today').textContent =
+      new Date().toLocaleString('it-IT', {dateStyle:'full', timeStyle:'short'});
+    document.getElementById('apiInUso').textContent = API;
+
+    // Logout
+    document.getElementById('btnLogout').addEventListener('click', () => {
+      localStorage.removeItem('damiano_token');
+      localStorage.removeItem('damiano_user');
+      location.replace('index.html');
+    });
+  </script>
+  
+  <!-- NUOVO: link fisso alla pagina Sviluppatore (non usa l'overlay) -->
+  <a id="openDev" class="fab" href="/sviluppatore.html">⚙️ Sviluppatore</a>
+
+  <!-- ================== BLOCCO DEV ================== -->
+  <!-- Login “admin/admin” -->
+  <div id="devLogin" class="dev-modal">
+    <div class="box">
+      <h3>Accesso Sviluppatore</h3>
       <div class="row">
-        <div>
-          <label>Backend URL</label><br />
-          <input id="baseUrl" type="url" placeholder="https://damiano-backend-xxx.onrender.com" />
-        </div>
-        <div>
-          <label>X-Secret</label><br />
-          <input id="xSecret" type="password" placeholder="admin secret" />
-        </div>
-        <div>
-          <br />
-          <button id="saveBtn">Salva</button>
-          <button class="ghost" id="refreshBtn">Aggiorna contatti</button>
-        </div>
+        <input id="devUser" placeholder="Username" />
+        <input id="devPass" placeholder="Password" type="password" />
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="dev-btn ghost" id="devCancel">Annulla</button>
+        <button class="dev-btn" id="devEnter">Entra</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pannello sviluppatore -->
+  <div id="devOverlay" class="dev-overlay" aria-hidden="true">
+    <div class="dev-card">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="dev-h1">⚙️ Area Sviluppatore</div>
+        <button class="dev-btn ghost dev-right" id="devExit">Esci</button>
       </div>
 
-      <div id="status"></div>
-
-      <!-- Pannello STORAGE -->
-      <h2>📁 Percorso di salvataggio</h2>
-      <div class="storage-box">
-        <div class="row" style="margin:0 0 8px">
-          <button id="btnReadStorage" class="ghost">📁 Leggi percorso</button>
-          <button id="btnSetStorage">✏️ Imposta percorso…</button>
-        </div>
-        <div id="storageInfo">
-          <div><small class="mono">data_dir: <span id="curDir">—</span></small></div>
-          <div style="margin-top:6px">
-            <small class="mono">files: <span id="curFiles">—</span></small>
-          </div>
-        </div>
-        <div style="margin-top:8px;color:#6b7280;font-size:13px">
-          Suggerimenti: su Render usare percorsi <em>del server</em>, es. <span class="mono">/tmp/damiano-data</span> (non persistente) oppure un
-          disco montato, es. <span class="mono">/var/damiano-data</span> (persistente).
-        </div>
+      <div class="dev-row">
+        <input id="devBaseUrl" class="dev-input" placeholder="Backend URL" />
+        <input id="devSecret"  class="dev-input" placeholder="X-Secret (es. demo)" />
+        <button class="dev-btn" id="devSave">Salva</button>
+        <button class="dev-btn ghost" id="devLoad">Invia e mail manualmente</button>
       </div>
 
-      <!-- Tabella contatti -->
-      <h2>Contatti</h2>
-      <table id="tbl">
+      <div id="devStatus" class="dev-status"></div>
+
+      <table class="dev" id="devTable">
         <thead>
           <tr>
-            <th>Nome</th>
-            <th>Email</th>
-            <th>Prossima ricorrenza</th>
-            <th class="right">Azione</th>
+            <th>Nome</th><th>Email</th><th>Prossima ricorrenza</th><th>ID</th>
           </tr>
         </thead>
-        <tbody id="tbody">
-          <tr><td colspan="4"><small>Caricamento contatti…</small></td></tr>
+        <tbody id="devBody">
+          <tr><td colspan="4" class="dev-dim">Nessun dato</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
+  <!-- Script DEV (invariato) -->
   <script>
-    const el = (id) => document.getElementById(id);
-    const LS_BASE = "dev_base_url";
-    const LS_SECRET = "dev_x_secret";
+    (function(){
+      const $ = (id)=>document.getElementById(id);
+      const LS_BASE="dev_base_url", LS_SECRET="dev_x_secret", LS_AUTH="dev_is_auth";
+      const DEFAULT_BASE = (typeof API !== "undefined" && API) ? API : "https://damiano-backend-ancz.onrender.com";
 
-    // Defaults
-    el("baseUrl").value = localStorage.getItem(LS_BASE) || "https://damiano-backend-ancz.onrender.com";
-    el("xSecret").value = localStorage.getItem(LS_SECRET) || "";
+      // elementi
+      const btnDev = $("btnDev"); // rimane per compatibilità: non esiste in questa pagina
+      const overlay = $("devOverlay");
+      const status  = $("devStatus");
+      const tbody   = $("devBody");
+      const baseUrl = $("devBaseUrl");
+      const secret  = $("devSecret");
+      const btnSave = $("devSave");
+      const btnLoad = $("devLoad");
+      const btnExit = $("devExit");
+      const login   = $("devLogin");
+      const devUser = $("devUser");
+      const devPass = $("devPass");
+      const btnEnter= $("devEnter");
+      const btnCancel=$("devCancel");
 
-    const getBase = () => el("baseUrl").value.trim().replace(/\/+$/,'');
-    const getSecret = () => el("xSecret").value;
+      // init fields
+      baseUrl.value = localStorage.getItem(LS_BASE) || DEFAULT_BASE;
+      secret.value  = localStorage.getItem(LS_SECRET) || "";
 
-    // Torna Home
-    el('btnBack').addEventListener('click', ()=>{ location.href = '/home.html'; });
+      function setStatus(msg, ok){ status.className = "dev-status "+(ok?"ok":"err"); status.textContent = msg; }
 
-    el("saveBtn").addEventListener("click", () => {
-      localStorage.setItem(LS_BASE, getBase());
-      localStorage.setItem(LS_SECRET, getSecret());
-      setStatus("Impostazioni salvate ✔️", true);
-      loadRecords();
-      readStorage();
-    });
+      // click su "Sviluppatore" (vecchio overlay) — non si attiva perché non c'è #btnDev
+      btnDev?.addEventListener("click", ()=>{
+        if(localStorage.getItem(LS_AUTH)==="1"){ openOverlay(); }
+        else { openLogin(); }
+      });
 
-    el("refreshBtn").addEventListener("click", () => loadRecords());
-    el("btnReadStorage").addEventListener("click", () => readStorage());
-    el("btnSetStorage").addEventListener("click", () => setStorage());
-
-    function setStatus(msg, ok=false){
-      el("status").className = ok ? "ok" : "err";
-      el("status").textContent = msg;
-    }
-
-    // ===== STORAGE =====
-    async function readStorage(){
-      const base = getBase();
-      if(!base){ setStatus("Imposta il Backend URL", false); return; }
-      try{
-        const res = await fetch(`${base}/admin/storage`, {
-          headers: { "X-Secret": getSecret() }
-        });
-        if(!res.ok){
-          const err = await res.json().catch(()=>({detail: res.statusText}));
-          setStatus("Errore lettura storage: " + (err.detail||res.status), false);
-          return;
-        }
-        const data = await res.json();
-        renderStorage(data);
-        setStatus("Percorso letto correttamente", true);
-      }catch(e){
-        setStatus("Errore rete (lettura storage)", false);
-      }
-    }
-
-    function renderStorage(obj){
-      el("curDir").textContent = obj?.data_dir || "—";
-      const files = Array.isArray(obj?.files) ? obj.files : [];
-      el("curFiles").textContent = files.length ? files.join(", ") : "—";
-    }
-
-    async function setStorage(){
-      const base = getBase();
-      if(!base){ setStatus("Imposta il Backend URL", false); return; }
-      const secret = getSecret();
-      if(!secret){ setStatus("Inserisci X-Secret", false); return; }
-
-      const path = prompt("Inserisci NUOVO percorso sul server (es. /tmp/damiano-data o /var/damiano-data):");
-      if(path === null) return; // annullato
-      const body = { path: String(path||"").trim() };
-      if(!body.path){ setStatus("Percorso non valido", false); return; }
-
-      try{
-        const res = await fetch(`${base}/admin/storage`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Secret": secret
-          },
-          body: JSON.stringify(body)
-        });
-        const data = await res.json();
-        if(res.ok && data.ok){
-          renderStorage(data);
-          setStatus(`Percorso impostato: ${data.data_dir}`, true);
+      // login
+      function openLogin(){ login.style.display="flex"; devUser.value=""; devPass.value=""; devUser.focus(); }
+      function closeLogin(){ login.style.display="none"; }
+      btnCancel.addEventListener("click", closeLogin);
+      btnEnter.addEventListener("click", ()=>{
+        if(devUser.value==="admin" && devPass.value==="admin"){
+          localStorage.setItem(LS_AUTH,"1");
+          closeLogin(); openOverlay();
         }else{
-          setStatus("Errore impostazione: " + (data.detail || JSON.stringify(data)), false);
+          alert("Credenziali errate. Username: admin, Password: admin");
         }
-      }catch(e){
-        setStatus("Errore rete (impostazione storage)", false);
-      }
-    }
+      });
 
-    // ===== RECORDS =====
-    async function loadRecords(){
-      const base = getBase();
-      if(!base){ setStatus("Imposta il Backend URL", false); return; }
-      el("tbody").innerHTML = `<tr><td colspan="4"><small>Caricamento contatti…</small></td></tr>`;
-      try{
-        const res = await fetch(`${base}/records`);
-        const data = await res.json();
-        renderTable(data || []);
-        setStatus(`Caricati ${ (data||[]).length } contatti`, true);
-      }catch(e){
-        el("tbody").innerHTML = `<tr><td colspan="4"><small>Errore caricamento contatti</small></td></tr>`;
-        setStatus("Errore di rete nel recupero dei contatti", false);
-      }
-    }
+      // overlay
+      function openOverlay(){ overlay.style.display="block"; setStatus("Pronto.", true); }
+      function closeOverlay(){ overlay.style.display="none"; setStatus("", true); }
+      btnExit.addEventListener("click", closeOverlay);
 
-    function renderTable(records){
-      const tbody = el("tbody");
-      if(!records.length){
-        tbody.innerHTML = `<tr><td colspan="4"><small>Nessun contatto presente</small></td></tr>`;
-        return;
-      }
-      tbody.innerHTML = "";
-      for(const r of records){
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><strong>${r.nome||""} ${r.cognome||""}</strong><br><small class="badge">${r.id}</small></td>
-          <td>${r.email||"<small class='err'>—</small>"}</td>
-          <td>${r.prossima_ricorrenza || "<small>—</small>"}</td>
-          <td class="right">
-            <button onclick="sendNow('${r.id}',0)">Invia ora</button>
-            <button class="ghost" onclick="sendNow('${r.id}',1)" title="Invia e avanza di 1 anno">Invia +1y</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      }
-    }
+      // salva impostazioni
+      btnSave.addEventListener("click", ()=>{
+        localStorage.setItem(LS_BASE, baseUrl.value.trim());
+        localStorage.setItem(LS_SECRET, secret.value.trim());
+        setStatus("Impostazioni salvate ✔️", true);
+      });
 
-    async function sendNow(rid, advance){
-      const base = getBase();
-      const secret = getSecret();
-      if(!secret){ setStatus("Inserisci X-Secret", false); return; }
-
-      if(!confirm("Vuoi inviare subito l'email per questo contatto?")) return;
-
-      try{
-        const res = await fetch(`${base}/admin/send-now/${rid}?advance=${advance}`, {
-          method: "POST",
-          headers: { "X-Secret": secret }
-        });
-        const data = await res.json();
-        if(res.ok && data.ok){
-          setStatus("✅ Email inviata correttamente", true);
-        }else{
-          setStatus("❌ Errore: " + (data.detail || JSON.stringify(data)), false);
+      // carica contatti
+      btnLoad.addEventListener("click", async ()=>{
+        const base = baseUrl.value.trim();
+        if(!base){ setStatus("Imposta il Backend URL", false); return; }
+        tbody.innerHTML = `<tr><td colspan="4" class="dev-dim">Caricamento…</td></tr>`;
+        try{
+          const res = await fetch(`${base}/records`);
+          const data = await res.json();
+          renderRows(Array.isArray(data)?data:[]);
+          setStatus(`Caricati ${ (data||[]).length } contatti`, true);
+        }catch(e){
+          setStatus("Errore nel recupero dei contatti", false);
+          tbody.innerHTML = `<tr><td colspan="4" class="dev-dim">Errore</td></tr>`;
         }
-      }catch(e){
-        setStatus("❌ Errore di rete nell'invio", false);
-      }
-    }
+      });
 
-    // Auto-load all'avvio
-    loadRecords();
-    readStorage();
+      function renderRows(list){
+        if(!list.length){ tbody.innerHTML = `<tr><td colspan="4" class="dev-dim">Nessun contatto</td></tr>`; return; }
+        tbody.innerHTML = "";
+        for(const r of list){
+          const tr = document.createElement("tr");
+          tr.dataset.rid = r.id;
+          tr.innerHTML = `
+            <td><strong>${r.nome||""} ${r.cognome||""}</strong></td>
+            <td>${r.email||"<span class='dev-dim'>—</span>"}</td>
+            <td>${r.prossima_ricorrenza||"<span class='dev-dim'>—</span>"}</td>
+            <td><span class="dev-badge">${r.id||""}</span></td>
+          `;
+          tr.ondblclick = ()=>confirmSendNow(r.id, r.email);
+          tbody.appendChild(tr);
+        }
+      }
+
+      async function confirmSendNow(rid, email){
+        if(!rid){ return; }
+        if(!confirm(`Vuoi inviare la mail ORA per:\n${email || rid}?`)) return;
+
+        const base = baseUrl.value.trim();
+        const sec  = secret.value.trim();
+        if(!sec){ setStatus("Inserisci X-Secret", false); return; }
+
+        try{
+          const res = await fetch(`${base}/admin/send-now/${rid}`, {
+            method:"POST",
+            headers: { "X-Secret": sec }
+          });
+          const data = await res.json();
+          if(res.ok && data.ok){ setStatus("✅ Email inviata", true); }
+          else { setStatus("❌ " + (data.detail || JSON.stringify(data)), false); }
+        }catch(e){ setStatus("❌ Errore di rete", false); }
+      }
+
+      // ESC chiude il pannello
+      document.addEventListener("keydown", (e)=>{
+        if(e.key==="Escape" && overlay.style.display==="block") closeOverlay();
+      });
+    })();
   </script>
+  <!-- ================== /BLOCCO DEV ================== -->
+
+  <!-- Forza la navigazione al file sviluppatore anche se qualche handler blocca il click -->
+  <script>
+    document.getElementById('openDev')?.addEventListener('click', function(e){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      window.location.href = '/sviluppatore.html';
+    });
+  </script>
+
 </body>
 </html>
-
 
 
 
