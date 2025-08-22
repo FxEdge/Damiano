@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Invia Email – Damiano</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .form-container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 400px;
+    }
+    h2 { margin-top: 0; color: #2563eb; }
+    label { display: block; margin: 10px 0 5px; }
+    input, textarea {
+      width: 100%; padding: 8px;
+      border: 1px solid #ccc; border-radius: 6px;
+    }
+    button {
+      margin-top: 15px;
+      background: #2563eb;
+      color: #fff; border: none;
+      padding: 10px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover { background: #1d4ed8; }
+    #result { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Invia Email</h2>
+    <form id="emailForm">
+      <label for="to">Destinatario</label>
+      <input type="email" id="to" name="to" required>
+
+      <label for="subject">Oggetto</label>
+      <input type="text" id="subject" name="subject" required>
+
+      <label for="message">Messaggio</label>
+      <textarea id="message" name="message" rows="5" required></textarea>
+
+      <button type="submit">Invia</button>
+    </form>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    document.getElementById("emailForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const to = document.getElementById("to").value;
+      const subject = document.getElementById("subject").value;
+      const message = document.getElementById("message").value;
+
+      try {
+        const res = await fetch("https://damiano-backend-ancz.onrender.com/send-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Secret": "demo"  // stessa chiave che usi nel backend
+          },
+          body: JSON.stringify({ to, subject, message })
+        });
+
+        const data = await res.json();
+        document.getElementById("result").innerText = data.ok ? "✅ Email inviata!" : "❌ Errore: " + JSON.stringify(data);
+      } catch (err) {
+        document.getElementById("result").innerText = "❌ Errore di connessione";
+      }
+    });
+  </script>
+</body>
+</html>
