@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Area Sviluppatore – Damiano</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --primary:#2563eb; --bg:#f6f7fb; --card:#fff; --muted:#6b7280; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background:var(--bg); }
+    .wrap { max-width: 1000px; margin: 40px auto; padding: 0 16px; }
+    .card { background:var(--card); border-radius:16px; box-shadow: 0 8px 30px rgba(0,0,0,.06); padding:20px; }
+    h1 { margin:0 0 16px; font-size: 24px; }
+    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin: 12px 0 18px; }
+    label { font-size:14px; color:var(--muted); }
+    input[type="text"], input[type="password"], input[type="url"] {
+      padding:10px 12px; border:1px solid #e5e7eb; border-radius:10px; min-width: 260px;
+    }
+    button {
+      padding:10px 14px; border:0; border-radius:10px; background:var(--primary); color:#fff; cursor:pointer;
+    }
+    button.ghost { background:#e5e7eb; color:#111827; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th, td { padding:10px 8px; border-bottom:1px solid #eee; text-align:left; font-size:14px; }
+    th { color:#111827; }
+    td small { color:var(--muted); }
+    .right { text-align:right; }
+    .badge { font-size:12px; padding:2px 8px; border-radius:999px; background:#eef2ff; color:#3730a3; }
+    #status { margin-top:10px; font-size:14px; }
+    .ok { color:#15803d; } .err{ color:#b91c1c; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>⚙️ Area Sviluppatore</h1>
+      <div class="row">
+        <div>
+          <label>Backend URL</label><br />
+          <input id="baseUrl" type="url" placeholder="https://damiano-backend-xxx.onrender.com" />
+        </div>
+        <div>
+          <label>X-Secret</label><br />
+          <input id="xSecret" type="password" placeholder="admin secret" />
+        </div>
+        <div>
+          <br />
+          <button id="saveBtn">Salva</button>
+          <button class="ghost" id="refreshBtn">Aggiorna contatti</button>
+        </div>
+      </div>
+
+      <div id="status"></div>
+
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Prossima ricorrenza</th>
+            <th class="right">Azione</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="4"><small>Caricamento contatti…</small></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+    const LS_BASE = "dev_base_url";
+    const LS_SECRET = "dev_x_secret";
+
+    // Defaults
+    el("baseUrl").value = localStorage.getItem(LS_BASE) || "https://damiano-backend-ancz.onrender.com";
+    el("xSecret").value = localStorage.getItem(LS_SECRET) || "";
+
+    el("saveBtn").addEventListener("click", () => {
+      localStorage.setItem(LS_BASE, el("baseUrl").value.trim());
+      localStorage.setItem(LS_SECRET, el("xSecret").value);
+      setStatus("Impostazioni salvate ✔️", true);
+      loadRecords();
+    });
+
+    el("refreshBtn").addEventListener("click", () => loadRecords());
+
+    function setStatus(msg, ok=false){
+      el("status").className = ok ? "ok" : "err";
+      el("status").textContent = msg;
+    }
+
+    async function loadRecords(){
+      const base = el("baseUrl").value.trim();
+      if(!base){ setStatus("Imposta il Backend URL", false); return; }
+      el("tbody").innerHTML = `<tr><td colspan="4"><small>Caricamento contatti…</small></td></tr>`;
+      try{
+        const res = await fetch(`${base}/records`);
+        const data = await res.json();
+        renderTable(data || []);
+        setStatus(`Caricati ${ (data||[]).length } contatti`, true);
+      }catch(e){
+        el("tbody").innerHTML = `<tr><td colspan="4"><small>Errore caricamento contatti</small></td></tr>`;
+        setStatus("Errore di rete nel recupero dei contatti", false);
+      }
+    }
+
+    function renderTable(records){
+      const tbody = el("tbody");
+      if(!records.length){
+        tbody.innerHTML = `<tr><td colspan="4"><small>Nessun contatto presente</small></td></tr>`;
+        return;
+      }
+      tbody.innerHTML = "";
+      for(const r of records){
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${r.nome||""} ${r.cognome||""}</strong><br><small class="badge">${r.id}</small></td>
+          <td>${r.email||"<small class='err'>—</small>"}</td>
+          <td>${r.prossima_ricorrenza || "<small>—</small>"}</td>
+          <td class="right">
+            <button onclick="sendNow('${r.id}',0)">Invia ora</button>
+            <button class="ghost" onclick="sendNow('${r.id}',1)" title="Invia e avanza di 1 anno">Invia +1y</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    async function sendNow(rid, advance){
+      const base = el("baseUrl").value.trim();
+      const secret = el("xSecret").value;
+      if(!secret){ setStatus("Inserisci X-Secret", false); return; }
+
+      if(!confirm("Vuoi inviare subito l'email per questo contatto?")) return;
+
+      try{
+        const res = await fetch(`${base}/admin/send-now/${rid}?advance=${advance}`, {
+          method: "POST",
+          headers: { "X-Secret": secret }
+        });
+        const data = await res.json();
+        if(res.ok && data.ok){
+          setStatus("✅ Email inviata correttamente", true);
+        }else{
+          setStatus("❌ Errore: " + (data.detail || JSON.stringify(data)), false);
+        }
+      }catch(e){
+        setStatus("❌ Errore di rete nell'invio", false);
+      }
+    }
+
+    // Auto-load all'avvio
+    loadRecords();
+  </script>
+</body>
+</html>
