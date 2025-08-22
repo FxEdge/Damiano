@@ -31,6 +31,22 @@
   max-width: 140px;
   height: auto;
 }  
+    /***** Bottone Sviluppatore in basso a sinistra *****/
+#btnDev{
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0,0,0,.18);
+  z-index: 9998;
+}
+#btnDev:hover{ filter: brightness(1.08); }
+
     /* === NUOVO: metti i tre bottoni in colonna e a tutta larghezza === */
     .actions-stack{display:flex;flex-direction:column;gap:12px;margin-top:8px}
     .actions-stack .btn-primary{width:100%;text-align:left}
@@ -75,167 +91,6 @@
     </div>
   </div>
 </div>
-
-<!-- Pannello sviluppatore -->
-<div id="devOverlay" class="dev-overlay" aria-hidden="true">
-  <div class="dev-card">
-    <div style="display:flex;align-items:center;gap:10px">
-      <div class="dev-h1">⚙️ Area Sviluppatore</div>
-      <button class="dev-btn ghost dev-right" id="devExit">Esci</button>
-    </div>
-
-    <div class="dev-row">
-      <input id="devBaseUrl" class="dev-input" placeholder="Backend URL" />
-      <input id="devSecret"  class="dev-input" placeholder="X-Secret (es. demo)" />
-      <button class="dev-btn" id="devSave">Salva</button>
-      <button class="dev-btn ghost" id="devLoad">Invia e mail manualmente</button>
-    </div>
-
-    <div id="devStatus" class="dev-status"></div>
-
-    <table class="dev" id="devTable">
-      <thead>
-        <tr>
-          <th>Nome</th><th>Email</th><th>Prossima ricorrenza</th><th>ID</th>
-        </tr>
-      </thead>
-      <tbody id="devBody">
-        <tr><td colspan="4" class="dev-dim">Nessun dato</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<script>
-(function(){
-  const $ = (id)=>document.getElementById(id);
-  const LS_BASE="dev_base_url", LS_SECRET="dev_x_secret", LS_AUTH="dev_is_auth";
-  const DEFAULT_BASE="https://damiano-backend-ancz.onrender.com"; // modifica se serve
-
-  // elementi
-  const btnDev = $("btnDev");
-  const overlay = $("devOverlay");
-  const status  = $("devStatus");
-  const tbody   = $("devBody");
-  const baseUrl = $("devBaseUrl");
-  const secret  = $("devSecret");
-  const btnSave = $("devSave");
-  const btnLoad = $("devLoad");
-  const btnExit = $("devExit");
-  const login   = $("devLogin");
-  const devUser = $("devUser");
-  const devPass = $("devPass");
-  const btnEnter= $("devEnter");
-  const btnCancel=$("devCancel");
-
-  // init fields
-  baseUrl.value = localStorage.getItem(LS_BASE) || DEFAULT_BASE;
-  secret.value  = localStorage.getItem(LS_SECRET) || "";
-
-  function setStatus(msg, ok){ status.className = "dev-status "+(ok?"ok":"err"); status.textContent = msg; }
-
-  // HOME: click su "Sviluppatore"
-  btnDev?.addEventListener("click", ()=>{
-    // se già autenticato mostra overlay, altrimenti login
-    if(localStorage.getItem(LS_AUTH)==="1"){ openOverlay(); }
-    else { openLogin(); }
-  });
-
-  function openLogin(){
-    login.style.display="flex";
-    devUser.value=""; devPass.value="";
-    devUser.focus();
-  }
-  function closeLogin(){ login.style.display="none"; }
-
-  btnCancel.addEventListener("click", closeLogin);
-  btnEnter.addEventListener("click", ()=>{
-    if(devUser.value==="admin" && devPass.value==="admin"){
-      localStorage.setItem(LS_AUTH,"1");
-      closeLogin(); openOverlay();
-    }else{
-      alert("Credenziali errate. Username: admin, Password: admin");
-    }
-  });
-
-  function openOverlay(){
-    overlay.style.display="block";
-    setStatus("Pronto.", true);
-  }
-  function closeOverlay(){
-    overlay.style.display="none";
-    setStatus("", true);
-  }
-
-  btnExit.addEventListener("click", ()=>{
-    closeOverlay();
-  });
-
-  // salva impostazioni
-  btnSave.addEventListener("click", ()=>{
-    localStorage.setItem(LS_BASE, baseUrl.value.trim());
-    localStorage.setItem(LS_SECRET, secret.value.trim());
-    setStatus("Impostazioni salvate ✔️", true);
-  });
-
-  // carica contatti (anche già inviati – qui non c'è filtro)
-  btnLoad.addEventListener("click", async ()=>{
-    const base = baseUrl.value.trim();
-    if(!base){ setStatus("Imposta il Backend URL", false); return; }
-    tbody.innerHTML = `<tr><td colspan="4" class="dev-dim">Caricamento…</td></tr>`;
-    try{
-      const res = await fetch(`${base}/records`);
-      const data = await res.json();
-      renderRows(Array.isArray(data)?data:[]);
-      setStatus(`Caricati ${ (data||[]).length } contatti`, true);
-    }catch(e){
-      setStatus("Errore nel recupero dei contatti", false);
-      tbody.innerHTML = `<tr><td colspan="4" class="dev-dim">Errore</td></tr>`;
-    }
-  });
-
-  function renderRows(list){
-    if(!list.length){ tbody.innerHTML = `<tr><td colspan="4" class="dev-dim">Nessun contatto</td></tr>`; return; }
-    tbody.innerHTML = "";
-    for(const r of list){
-      const tr = document.createElement("tr");
-      tr.dataset.rid = r.id;
-      tr.innerHTML = `
-        <td><strong>${r.nome||""} ${r.cognome||""}</strong></td>
-        <td>${r.email||"<span class='dev-dim'>—</span>"}</td>
-        <td>${r.prossima_ricorrenza||"<span class='dev-dim'>—</span>"}</td>
-        <td><span class="dev-badge">${r.id||""}</span></td>
-      `;
-      tr.ondblclick = ()=>confirmSendNow(r.id, r.email);
-      tbody.appendChild(tr);
-    }
-  }
-
-  async function confirmSendNow(rid, email){
-    if(!rid){ return; }
-    if(!confirm(`Vuoi inviare la mail ORA per:\n${email || rid}?`)) return;
-
-    const base = baseUrl.value.trim();
-    const sec  = secret.value.trim();
-    if(!sec){ setStatus("Inserisci X-Secret", false); return; }
-
-    try{
-      const res = await fetch(`${base}/admin/send-now/${rid}`, {
-        method:"POST",
-        headers: { "X-Secret": sec }
-      });
-      const data = await res.json();
-      if(res.ok && data.ok){ setStatus("✅ Email inviata", true); }
-      else { setStatus("❌ " + (data.detail || JSON.stringify(data)), false); }
-    }catch(e){ setStatus("❌ Errore di rete", false); }
-  }
-
-  // chiudi overlay con ESC
-  document.addEventListener("keydown", (e)=>{
-    if(e.key==="Escape" && overlay.style.display==="block") closeOverlay();
-  });
-})();
-</script>
 <body>
   <!-- LOGO CENTRALE -->
   <div class="top-logo">
@@ -314,6 +169,7 @@
   <button id="btnDev">⚙️ Sviluppatore</button>
 </body>
 </html>
+
 
 
 
